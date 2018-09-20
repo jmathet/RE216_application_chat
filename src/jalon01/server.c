@@ -12,6 +12,27 @@ void error(const char *msg)
     exit(1);
 }
 
+int do_socket()
+{
+  int sock = socket(AF_INET, SOCK_STREAM, 0);
+
+  if (sock == -1)
+    perror("socket"); exit(EXIT_FAILURE);
+  return sock;
+}
+
+struct sockaddr_in init_serv_addr(char** argv)
+ {
+   struct sockaddr_in serv_addr;
+   memset(&serv_addr, '\0', sizeof(serv_addr));
+
+   serv_addr.sin_family = AF_INET;
+   serv_addr.sin_port = htons(atoi(argv[1]));
+   serv_addr.sin_addr.s_addr = INADDR_ANY;
+
+   return serv_addr;
+ }
+
 int main(int argc, char** argv)
 {
 
@@ -21,20 +42,31 @@ int main(int argc, char** argv)
         return 1;
     }
 
+    int sock, bind_result, listen_result;
+    struct sockaddr_in serv_addr;
 
     //create the socket, check for validity!
-    //do_socket()
+    sock = do_socket();
 
 
     //init the serv_add structure
-    //init_serv_addr()
+    serv_addr = init_serv_addr(argv);
 
     //perform the binding
     //we bind on the tcp port specified
-    //do_bind()
+    bind_result = bind(sock, (struct sockaddr *) &serv_addr, sizeof(serv_addr));
+    if (bind_result == -1) {
+      perror("bind");
+      exit(EXIT_FAILURE);
+    }
+
 
     //specify the socket to be a server socket and listen for at most 20 concurrent client
-    //listen()
+    listen_result = listen(sock, 20);
+    if (listen_result == -1) {
+      perror("listen");
+      exit(EXIT_FAILURE);
+    }
 
     for (;;)
     {
@@ -52,6 +84,7 @@ int main(int argc, char** argv)
     }
 
     //clean up server socket
+    close(sock);
 
     return 0;
 }
