@@ -7,7 +7,7 @@
 #include <sys/socket.h>
 #include <netdb.h>
 
-struct sockaddr_in get_addr_info(char** argv)
+struct sockaddr_in get_sockaddr(char** argv)
 {
   struct sockaddr_in host_addr;
   memset(&host_addr, '\0', sizeof(host_addr));
@@ -21,11 +21,9 @@ struct sockaddr_in get_addr_info(char** argv)
 
 int do_socket()
 {
-  int sock = socket(AF_INET, SOCK_STREAM, 0);
-  if (sock == -1) {
-    perror("socket");
-    exit(EXIT_FAILURE);
-  }
+  int sock = socket(AF_INET, SOCK_STREAM, 0); // TCP
+  if (sock == -1)
+    perror("socket"); exit(EXIT_FAILURE);
   return sock;
 }
 
@@ -33,10 +31,7 @@ int do_connect(int sock, struct sockaddr_in host_addr)
 {
   int connect_result = connect(sock, (struct sockaddr *) &host_addr, sizeof(host_addr));
   if(connect_result == -1)
-  {
-    perror("connect");
-    exit(EXIT_FAILURE);
-  }
+    perror("connect"); exit(EXIT_FAILURE);
 }
 
 int main(int argc,char** argv)
@@ -51,7 +46,7 @@ int main(int argc,char** argv)
     }
 
 //get address info from the server
-  host_addr = get_addr_info(argv);
+  host_addr = get_sockaddr(argv);
 
 
 //get the socket

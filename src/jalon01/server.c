@@ -9,21 +9,21 @@
 void error(const char *msg)
 {
     perror(msg);
-    exit(1);
+    exit(EXIT_FAILURE);
 }
 
 int do_socket()
 {
   int sock = socket(AF_INET, SOCK_STREAM, 0);
-
   if (sock == -1)
-    perror("socket"); exit(EXIT_FAILURE);
+    error("socket");
   return sock;
 }
 
 struct sockaddr_in init_serv_addr(char** argv)
  {
    struct sockaddr_in serv_addr;
+   // clean structure
    memset(&serv_addr, '\0', sizeof(serv_addr));
 
    serv_addr.sin_family = AF_INET;
@@ -32,6 +32,16 @@ struct sockaddr_in init_serv_addr(char** argv)
 
    return serv_addr;
  }
+
+ssize_t readline(int file_des, void *str, size_t maxlen)
+{
+  return read(file_des, str, maxlen);
+}
+
+ssize_t sendline(int file_des, const void *str, size_t maxlen)
+{
+  return write(file_des, str, maxlen);
+}
 
 int main(int argc, char** argv)
 {
@@ -56,16 +66,14 @@ int main(int argc, char** argv)
     //we bind on the tcp port specified
     bind_result = bind(sock, (struct sockaddr *) &serv_addr, sizeof(serv_addr));
     if (bind_result == -1) {
-      perror("bind");
-      exit(EXIT_FAILURE);
+      error("bind");
     }
 
 
     //specify the socket to be a server socket and listen for at most 20 concurrent client
     listen_result = listen(sock, 20);
     if (listen_result == -1) {
-      perror("listen");
-      exit(EXIT_FAILURE);
+      error("listen");
     }
 
     for (;;)
