@@ -10,13 +10,13 @@
 struct sockaddr_in get_addr_info(char** argv)
 {
   struct sockaddr_in host_addr;
-  memset(&client_addr, '\0', sizeof(host_addr));
+  memset(&host_addr, '\0', sizeof(host_addr));
 
   host_addr.sin_family = AF_INET;
   host_addr.sin_port = htons(atoi(argv[2]));
   inet_aton(argv[1], &host_addr.sin_addr);
 
-  return client_addr;
+  return host_addr;
 }
 
 int do_socket()
@@ -31,7 +31,7 @@ int do_socket()
 
 int do_connect(int sock, struct sockaddr_in host_addr)
 {
-  int connect_result = connect(sock, (struct sockaddr *) &host_addr, sizeof(host_add));
+  int connect_result = connect(sock, (struct sockaddr *) &host_addr, sizeof(host_addr));
   if(connect_result == -1)
   {
     perror("connect");
