@@ -37,6 +37,7 @@ int do_connect(int sock, struct sockaddr_in host_addr)
     perror("connect");
     exit(EXIT_FAILURE);
   }
+  printf("Connexion au serveur réussi\n\n");
 }
 
 ssize_t readline(int file_des, void *str, size_t maxlen)
@@ -67,7 +68,16 @@ int main(int argc,char** argv)
 
 
 //get user input
-//readline()
+printf("Message à envoyer au serveur : \n");
+char* message;
+int maxlen = 30;
+message = malloc(sizeof(char)*maxlen);
+ssize_t imput_test = -1;
+while (imput_test==-1) {
+
+  imput_test = readline(STDIN_FILENO, message, maxlen);
+}
+
 
 //send message to the server
 //handle_client_message()
