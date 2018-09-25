@@ -52,8 +52,6 @@ int main(int argc,char** argv)
     while(1) {
       printf("> ");
       //get user input
-      //memset(message, '\0', MSG_MAXLEN);
-      //readline(STDIN_FILENO, message, MSG_MAXLEN);
       scanf("%s", message);
 
       // send it to server
