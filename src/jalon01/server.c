@@ -6,14 +6,17 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 
+#define MSG_MAXLEN 30
+
 void error(const char *msg);
 int do_socket();
 void init_serv_addr(struct sockaddr_in *serv_addr, int port);
 void do_bind(int socket, struct sockaddr_in addr_in);
 void do_listen(int socket, int nb_max);
- int do_accept(int socket, struct sockaddr *addr, socklen_t* addrlen);
+int do_accept(int socket, struct sockaddr *addr, socklen_t* addrlen);
+void do_read(int file_des, char *message, int maxlen);
 ssize_t readline(int file_des, void *str, size_t maxlen);
-ssize_t sendline(int file_des, const void *str, size_t maxlen);
+void sendline(int file_des, const void *str, size_t maxlen);
 
 int main(int argc, char** argv)
 {
@@ -51,14 +54,15 @@ int main(int argc, char** argv)
         int connection_fd = do_accept(sock, (struct sockaddr*)&serv_addr, &addrlen);
 
         //read what the client has to say
-        //do_read()
-        char message[30];
-        memset(message, '\0', 30);
-        readline(connection_fd, &message, 30);
+        char *message;
+        message = malloc(sizeof(char) * MSG_MAXLEN);
+        do_read(connection_fd, message, MSG_MAXLEN);
         printf("%s\n", message);
 
         //we write back to the client
         //do_write()
+        if (read_length)
+          sendline(connection_fd, &message, MSG_MAXLEN); */
 
         //clean up client socket
     }
@@ -125,17 +129,28 @@ void init_serv_addr(struct sockaddr_in *serv_addr, int port)
    return file_des_new;
  }
 
+ void do_read(int file_des, char *message, int maxlen)
+ {
+   char *temp_message = malloc(sizeof(char)*maxlen);
+   readline(file_des, temp_message, MSG_MAXLEN);
+   strcpy(temp_message, message);
+ }
+
  ssize_t readline(int file_des, void *str, size_t maxlen)
  {
    /* Read a line from the file descriptor with a maximum length in the specified buffer */
-     read(file_des, str, maxlen);
+   ssize_t read_length = -1;
+   while (read_length == -1) {
+     read_length = read(file_des, str, maxlen);
+   }
+   return read_length;
  }
 
- ssize_t sendline(int file_des, const void *str, size_t maxlen)
+ void sendline(int file_des, const void *str, size_t maxlen)
  {
    /* Write a line in the file descriptor with a maximum length with the given buffer */
-   int sent=0;
+   int sent_length=0;
    do {
-     sent += write(file_des, str + sent, maxlen - sent);
-   } while (sent != maxlen);
+     sent_length += write(file_des, str + sent_length, maxlen - sent_length);
+   } while (sent_length != maxlen);
  }
