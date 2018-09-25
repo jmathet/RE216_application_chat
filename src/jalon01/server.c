@@ -46,6 +46,7 @@ int main(int argc, char** argv)
     //specify the socket to be a server socket and listen for at most 20 concurrent client
     do_listen(sock, 20);
 
+    char message[MSG_MAXLEN];
     for (;;)
     {
         //accept connection from client
@@ -53,7 +54,6 @@ int main(int argc, char** argv)
         int connection_fd = do_accept(sock, (struct sockaddr*)&serv_addr, &addrlen);
 
         //read what the client has to say
-        char message[MSG_MAXLEN];
         memset(message, '\0', MSG_MAXLEN);
         int read_length;
         while((read_length = readline(connection_fd, message, MSG_MAXLEN)) > 0)
@@ -63,6 +63,11 @@ int main(int argc, char** argv)
           printf("> Sending : %s\n", message);
         }
 
+        // check if /quit
+        if(strcmp("/quit", message) == 0) {
+          printf("=== Quiting. ===");
+          break;
+        }
     }
 
     //clean up server socket

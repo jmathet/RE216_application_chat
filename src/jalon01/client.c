@@ -59,16 +59,20 @@ int main(int argc,char** argv)
       // send it to server
       printf("Sending : %s\n", message);
       sendline(sock, message, strlen(message));
-      memset(message, '\0', MSG_MAXLEN);
 
       // receive answer
       readline(sock, reply, MSG_MAXLEN);
       printf("Answer received : %s\n", reply);
-      memset(reply, '\0', MSG_MAXLEN);
 
       // check if /quit
-      if(strcmp("quit", message) == 0)
+      if(strcmp("/quit", message) == 0) {
+        printf("=== Quiting. ===");
         break;
+      }
+
+      // clean message and reply
+      memset(message, '\0', MSG_MAXLEN);
+      memset(reply, '\0', MSG_MAXLEN);
     }
 
     close(sock);
