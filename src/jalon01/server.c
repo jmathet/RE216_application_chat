@@ -14,7 +14,6 @@ void init_serv_addr(struct sockaddr_in *serv_addr, int port);
 void do_bind(int socket, struct sockaddr_in addr_in);
 void do_listen(int socket, int nb_max);
 int do_accept(int socket, struct sockaddr *addr, socklen_t* addrlen);
-void do_read(int file_des, char *message, int maxlen);
 ssize_t readline(int file_des, void *str, size_t maxlen);
 void sendline(int file_des, const void *str, size_t maxlen);
 
@@ -49,22 +48,21 @@ int main(int argc, char** argv)
 
     for (;;)
     {
-        socklen_t addrlen = sizeof(serv_addr);
         //accept connection from client
+        socklen_t addrlen = sizeof(struct sockaddr);
         int connection_fd = do_accept(sock, (struct sockaddr*)&serv_addr, &addrlen);
 
         //read what the client has to say
-        char *message;
-        message = malloc(sizeof(char) * MSG_MAXLEN);
-        do_read(connection_fd, message, MSG_MAXLEN);
-        printf("%s\n", message);
+        char message[MSG_MAXLEN];
+        memset(message, '\0', MSG_MAXLEN);
+        int read_length;
+        while((read_length = readline(connection_fd, message, MSG_MAXLEN)) > 0)
+        {
+          printf("< Received : %s\n", message);
+          sendline(connection_fd, message, strlen(message));
+          printf("> Sending : %s\n", message);
+        }
 
-        //we write back to the client
-        //do_write()
-        if (read_length)
-          sendline(connection_fd, &message, MSG_MAXLEN); */
-
-        //clean up client socket
     }
 
     //clean up server socket
@@ -129,21 +127,10 @@ void init_serv_addr(struct sockaddr_in *serv_addr, int port)
    return file_des_new;
  }
 
- void do_read(int file_des, char *message, int maxlen)
- {
-   char *temp_message = malloc(sizeof(char)*maxlen);
-   readline(file_des, temp_message, MSG_MAXLEN);
-   strcpy(temp_message, message);
- }
-
  ssize_t readline(int file_des, void *str, size_t maxlen)
  {
    /* Read a line from the file descriptor with a maximum length in the specified buffer */
-   ssize_t read_length = -1;
-   while (read_length == -1) {
-     read_length = read(file_des, str, maxlen);
-   }
-   return read_length;
+   return recv(file_des, str, maxlen, 0);
  }
 
  void sendline(int file_des, const void *str, size_t maxlen)

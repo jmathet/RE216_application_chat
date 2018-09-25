@@ -18,11 +18,6 @@ void do_connect(int sock, struct sockaddr_in host_addr);
 ssize_t readline(int file_des, void *str, size_t maxlen);
 void sendline(int file_des, const void *str, size_t maxlen);
 
-enum CLIENT_STATUS {
-  CLIENT_CONNECTED,
-  CLIENT_QUIT
-};
-
 int main(int argc,char** argv)
 {
     if (argc != 3)
@@ -41,7 +36,6 @@ int main(int argc,char** argv)
 
     int sock;
     struct sockaddr_in host_addr;
-    enum CLIENT_STATUS state;
 
 //get address info from the server
     init_client_addr(&host_addr, host_ip, host_port);
@@ -52,23 +46,32 @@ int main(int argc,char** argv)
 
 //connect to remote socket
     do_connect(sock, host_addr);
-    state = CLIENT_CONNECTED;
+    printf("=== You are now connected ! ===\n");
 
-    printf("=== Vous êtes maintenant connecté ! ===\n");
-    char * message;
-    message = malloc(sizeof(char)*MSG_MAXLEN);
-    while(state != CLIENT_QUIT) {
-      printf(">");
+    char message[MSG_MAXLEN], reply[MSG_MAXLEN];
+    while(1) {
+      printf("> ");
       //get user input
-      memset(message, '\0', MSG_MAXLEN);
-      readline(STDIN_FILENO, message, MSG_MAXLEN);
-      // send it to server
-      sendline(sock, message, MSG_MAXLEN);
-    }
-    free(message); // free space reserved for receveived messages
+      //memset(message, '\0', MSG_MAXLEN);
+      //readline(STDIN_FILENO, message, MSG_MAXLEN);
+      scanf("%s", message);
 
-//handle_client_message()
-  close(sock);
+      // send it to server
+      printf("Sending : %s\n", message);
+      sendline(sock, message, strlen(message));
+      memset(message, '\0', MSG_MAXLEN);
+
+      // receive answer
+      readline(sock, reply, MSG_MAXLEN);
+      printf("Answer received : %s\n", reply);
+      memset(reply, '\0', MSG_MAXLEN);
+
+      // check if /quit
+      if(strcmp("quit", message) == 0)
+        break;
+    }
+
+    close(sock);
     return 0;
 }
 
@@ -111,11 +114,8 @@ void init_client_addr(struct sockaddr_in *serv_addr, char *ip, int port)
 ssize_t readline(int file_des, void *str, size_t maxlen)
 {
   /* Read a line from the file descriptor with a maximum length in the specified buffer */
-  ssize_t read_length = -1;
-  while (read_length==-1) {
-    read_length = read(file_des, str, maxlen);
-  }
-  return read_length;
+  return recv(file_des, str, maxlen, 0);
+
 }
 
 void sendline(int file_des, const void *str, size_t maxlen)
@@ -123,6 +123,6 @@ void sendline(int file_des, const void *str, size_t maxlen)
   /* Write a line in the file descriptor with a maximum length with the given buffer */
   int sent_length=0;
   do {
-    sent_length += write(file_des, str + sent_length, maxlen - sent_length);
+    sent_length += send(file_des, str + sent_length, maxlen - sent_length, 0);
   } while (sent_length != maxlen);
 }
