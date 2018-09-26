@@ -65,7 +65,7 @@ int main(int argc, char** argv)
         }
 
         // check if /quit
-        if(strcmp("/quit", message) == 0) {
+        if(strncmp("/quit", message, 5) == 0) {
           printf("=== Quiting. ===\n");
           break;
         }
