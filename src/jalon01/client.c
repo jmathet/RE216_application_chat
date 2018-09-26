@@ -58,7 +58,7 @@ int main(int argc,char** argv)
 
       // send it to server
       printf("> Sending : %s\n", message);
-      sendline(sock, message, strlen(message));
+      sendline(sock, message, MSG_MAXLEN);
 
       // receive answer
       memset(reply, '\0', MSG_MAXLEN);
