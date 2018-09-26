@@ -11,7 +11,7 @@
 
 #define MSG_MAXLEN 30
 
-void error(const char *msg);
+
 int do_socket();
 void init_client_addr(struct sockaddr_in *serv_addr, char *ip, int port);
 void do_connect(int sock, struct sockaddr_in host_addr);
