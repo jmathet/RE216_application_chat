@@ -59,13 +59,14 @@ int main(int argc, char** argv)
         while((read_length = readline(connection_fd, message, MSG_MAXLEN)) > 0)
         {
           printf("< Received : %s\n", message);
-          sendline(connection_fd, message, strlen(message));
+          //sendline(connection_fd, message, strlen(message));
+          sendline(connection_fd, message, MSG_MAXLEN);
           printf("> Sending : %s\n", message);
         }
 
         // check if /quit
         if(strcmp("/quit", message) == 0) {
-          printf("=== Quiting. ===");
+          printf("=== Quiting. ===\n");
           break;
         }
     }

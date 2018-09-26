@@ -50,21 +50,24 @@ int main(int argc,char** argv)
 
     char message[MSG_MAXLEN], reply[MSG_MAXLEN];
     while(1) {
-      printf("> ");
+      printf("Message: ");
       //get user input
-      scanf("%s", message);
+      //scanf("%s", message);
+      memset(message, '\0', MSG_MAXLEN);
+      fgets(message, MSG_MAXLEN, stdin);
 
       // send it to server
-      printf("Sending : %s\n", message);
+      printf("> Sending : %s\n", message);
       sendline(sock, message, strlen(message));
 
       // receive answer
+      memset(reply, '\0', MSG_MAXLEN);
       readline(sock, reply, MSG_MAXLEN);
-      printf("Answer received : %s\n", reply);
+      printf("< Answer received : %s\n", reply);
 
       // check if /quit
       if(strcmp("/quit", message) == 0) {
-        printf("=== Quiting. ===");
+        printf("=== Quiting. ===\n");
         break;
       }
 
