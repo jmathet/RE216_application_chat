@@ -1,5 +1,12 @@
 #include "server_tools.h"
 
+
+
+struct thread_arg {
+  int thread_fd_connection;
+  int thread_sock;
+};
+
 void init_serv_addr(struct sockaddr_in *serv_addr, int port)
  {
    /* Modify specified sockaddr_in for the server side with specified port */
@@ -37,3 +44,31 @@ void init_serv_addr(struct sockaddr_in *serv_addr, int port)
    }
    return file_des_new;
  }
+
+void *connection_handler(void* thread_input)
+{
+  thread_para *thread= (thread_para )thread_input;
+  int connection_fd = atoi(thread->thread_fd_connection);
+  int sock = atoi(thread->thread_sock);
+  char message[MSG_MAXLEN];
+
+  //read what the client has to say
+  memset(message, '\0', MSG_MAXLEN);
+  int read_length;
+  while((read_length = readline(connection_fd, message, MSG_MAXLEN)) > 0)
+  {
+    printf("< Received : %s\n", message);
+    //sendline(connection_fd, message, strlen(message));
+    sendline(connection_fd, message, MSG_MAXLEN);
+    printf("> Sending : %s\n", message);
+  }
+
+  // check if /quit
+  if(strncmp("/quit", message, 5) == 0) {
+    printf("=== Quiting. ===\n");
+    close(thread->thread_sock);
+
+  }
+
+    return 0;
+}

@@ -31,30 +31,32 @@ int main(int argc, char** argv)
 
     //specify the socket to be a server socket and listen for at most 20 concurrent client
     do_listen(sock, 20);
+    pthread_t thread_id;
+    thread_arg * thread_input;
 
-    char message[MSG_MAXLEN];
+
+
+
+
     for (;;)
     {
         //accept connection from client
         socklen_t addrlen = sizeof(struct sockaddr);
         int connection_fd = do_accept(sock, (struct sockaddr*)&serv_addr, &addrlen);
 
-        //read what the client has to say
-        memset(message, '\0', MSG_MAXLEN);
-        int read_length;
-        while((read_length = readline(connection_fd, message, MSG_MAXLEN)) > 0)
-        {
-          printf("< Received : %s\n", message);
-          //sendline(connection_fd, message, strlen(message));
-          sendline(connection_fd, message, MSG_MAXLEN);
-          printf("> Sending : %s\n", message);
-        }
+        //initialisation thread
+        thread_input = (thread_arg*)malloc(sizeof *thread_input);
+        thread_input.thread_fd_connection = connection_fd;
+        thread_input.thread_sock = sock;
 
-        // check if /quit
-        if(strncmp("/quit", message, 5) == 0) {
-          printf("=== Quiting. ===\n");
-          break;
+        //création thread
+        if( pthread_create( &thread_id , NULL ,  connection_handler , (void*) &thread_input) != 0)
+        {
+            error("Erreur création du tread.");
         }
+        //pthread_join( thread_id , NULL);
+
+
     }
 
     //clean up server socket
