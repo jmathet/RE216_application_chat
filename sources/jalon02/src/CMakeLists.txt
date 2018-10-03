@@ -10,7 +10,6 @@ SET(SRC_CLIENT
 	${client_tools_files}
     include/general_tools.h
     include/general_tools.c
-    include/client/client.h
     include/client/client_tools.h
     include/client/client_tools.c
 	)
@@ -23,7 +22,6 @@ SET(SRC_SERVER
 	${server_tools_files}
     include/general_tools.h
     include/general_tools.c
-    include/server/server.h
     include/server/server_tools.h
     include/server/server_tools.c
 	)

@@ -1,22 +1,7 @@
-#include <stdlib.h>
-#include <unistd.h>
-#include <stdio.h>
-#include <string.h>
-
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <netdb.h>
+#include "include/client/client_tools.h"
+#include "include/general_tools.h"
 
 #define MSG_MAXLEN 30
-
-
-int do_socket();
-void init_client_addr(struct sockaddr_in *serv_addr, char *ip, int port);
-void do_connect(int sock, struct sockaddr_in host_addr);
-ssize_t readline(int file_des, void *str, size_t maxlen);
-void sendline(int file_des, const void *str, size_t maxlen);
 
 int main(int argc,char** argv)
 {
@@ -78,56 +63,4 @@ int main(int argc,char** argv)
 
     close(sock);
     return 0;
-}
-
-void error(const char *msg)
-{
-  /* Interrupt program because of an error */
-    perror(msg);
-    exit(EXIT_FAILURE);
-}
-
-int do_socket()
-{
-  /* Create a socket and return the associated file descriptor */
-  int file_des = socket(AF_INET, SOCK_STREAM, 0);
-  if (file_des == -1) {
-    error("Error during socket creation");
-  }
-
-  return file_des;
-}
-
-void init_client_addr(struct sockaddr_in *serv_addr, char *ip, int port)
- {
-   /* Modify specified sockaddr_in for the client side with specified port and IP */
-   // clean structure
-   memset(serv_addr, '\0', sizeof(*serv_addr));
-   serv_addr->sin_family = AF_INET; // IP V4
-   serv_addr->sin_port = htons(port); // specified port in args
-   serv_addr->sin_addr.s_addr = inet_addr(ip); // specified server IP in args
- }
-
- void do_connect(int sock, struct sockaddr_in host_addr)
- {
-   int connect_result = connect(sock, (struct sockaddr *) &host_addr, sizeof(host_addr));
-   if (connect_result == -1) {
-     error("Error during connection");
-   }
- }
-
-ssize_t readline(int file_des, void *str, size_t maxlen)
-{
-  /* Read a line from the file descriptor with a maximum length in the specified buffer */
-  return recv(file_des, str, maxlen, 0);
-
-}
-
-void sendline(int file_des, const void *str, size_t maxlen)
-{
-  /* Write a line in the file descriptor with a maximum length with the given buffer */
-  int sent_length=0;
-  do {
-    sent_length += send(file_des, str + sent_length, maxlen - sent_length, 0);
-  } while (sent_length != maxlen);
 }
