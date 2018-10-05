@@ -26,3 +26,5 @@ SET(SRC_SERVER
     include/server/server_tools.c
 	)
 add_executable(RE216_JALON02_SERVER  ${SRC_SERVER})
+
+target_link_libraries (RE216_JALON02_SERVER ${CMAKE_THREAD_LIBS_INIT})

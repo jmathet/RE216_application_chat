@@ -31,14 +31,14 @@ int main(int argc, char** argv)
 
     //specify the socket to be a server socket and listen for at most 20 concurrent client
     do_listen(sock, 20);
-    pthread_t thread_id;
+    pthread_t thread_id[50];
     thread_arg * thread_input;
+    int thread_count = 0;
 
 
 
 
-
-    for (;;)
+    while (thread_count<50)
     {
         //accept connection from client
         socklen_t addrlen = sizeof(struct sockaddr);
@@ -46,15 +46,20 @@ int main(int argc, char** argv)
 
         //initialisation thread
         thread_input = (thread_arg*)malloc(sizeof *thread_input);
-        thread_input.thread_fd_connection = connection_fd;
-        thread_input.thread_sock = sock;
+        thread_input->thread_fd_connection = connection_fd;
+        thread_input->thread_sock = sock;
 
         //création thread
-        if( pthread_create( &thread_id , NULL ,  connection_handler , (void*) &thread_input) != 0)
+        //if( pthread_create( &thread_id , NULL ,  connection_handler , (void*) &thread_input) != 0)
+        if( pthread_create( &thread_id[thread_count] , NULL ,  connection_handler , (void*) &connection_fd) != 0)
         {
+            free(thread_input);
             error("Erreur création du tread.");
         }
-        //pthread_join( thread_id , NULL);
+        printf("Création thread n°%d réussi\n", thread_count );
+        pthread_join( thread_id[thread_count] , NULL);
+        thread_count ++;
+        printf("%d\n", thread_count);
 
 
     }
