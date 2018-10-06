@@ -56,7 +56,7 @@ void *connection_handler(void* fd_connection)
   //read what the client has to say
   memset(message, '\0', MSG_MAXLEN);
   int read_length;
-  printf("Je suis une nouvelle thread personnelle.\n" );
+  printf("Je suis un nouvel thread personnel.\n" );
   //sendline(sock_fd_connection, "Je suis ta thread perso", MSG_MAXLEN);
 
   while((read_length = readline(sock_fd_connection, message, MSG_MAXLEN)) > 0)
@@ -74,6 +74,6 @@ void *connection_handler(void* fd_connection)
 
   }*/
 
-  printf("JE suis un thread qui vient de se terminer\n" );
+  printf("== Je suis un thread qui vient de se terminer - client déconnecté ==\n" );
     return NULL; //une fonction exécutée par un thread doit retourner un pointeur
 }

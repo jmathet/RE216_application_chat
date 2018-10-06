@@ -57,9 +57,9 @@ int main(int argc, char** argv)
             error("Erreur création du tread.");
         }
         printf("Création thread n°%d réussi\n", thread_count );
-        pthread_join( thread_id[thread_count] , NULL);
+        //pthread_join( thread_id[thread_count] , NULL); // join non utilisé mais je ne sais pas pourquoi!
         thread_count ++;
-        printf("%d\n", thread_count);
+
 
 
     }
