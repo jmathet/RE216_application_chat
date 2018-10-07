@@ -56,7 +56,7 @@ void *connection_handler(void* thread_input)
 
   if (*thread_count_p>=NB_MAX_CLIENT) {
     sendline(sock_fd_connection, "connexion refused", MSG_MAXLEN);
-    //close(sock);
+    close(sock);
     (*thread_count_p)--;
     return NULL;
   }
