@@ -31,14 +31,15 @@ int main(int argc, char** argv)
 
     //specify the socket to be a server socket and listen for at most 20 concurrent client
     do_listen(sock, 20);
-    pthread_t thread_id[50];
-    thread_arg * thread_input;
-    int thread_count = 0;
+    pthread_t thread_id;
+    thread_arg * thread_input; //déclaration d'un pointeur sur une strcuture thread_arg
+    int *thread_count = (int*)malloc(sizeof *thread_count);
+    *thread_count=0;
 
 
 
 
-    while (thread_count<50)
+    while (1)
     {
         //accept connection from client
         socklen_t addrlen = sizeof(struct sockaddr);
@@ -48,17 +49,18 @@ int main(int argc, char** argv)
         thread_input = (thread_arg*)malloc(sizeof *thread_input);
         thread_input->thread_fd_connection = connection_fd;
         thread_input->thread_sock = sock;
+        thread_input->thread_nb = *thread_count;
+        thread_input->thread_count = thread_count;
 
         //création thread
-        //if( pthread_create( &thread_id , NULL ,  connection_handler , (void*) &thread_input) != 0)
-        if( pthread_create( &thread_id[thread_count] , NULL ,  connection_handler , (void*) &connection_fd) != 0)
+        if( pthread_create( &thread_id , NULL ,  connection_handler , (void*)thread_input) != 0)
         {
             free(thread_input);
             error("Erreur création du tread.");
         }
-        printf("Création thread n°%d réussi\n", thread_count );
-        //pthread_join( thread_id[thread_count] , NULL); // join non utilisé mais je ne sais pas pourquoi!
-        thread_count ++;
+        printf("Création thread n°%d réussi\n", *thread_count );
+        (*thread_count) ++;
+        printf("%d\n", *thread_count);
 
 
 

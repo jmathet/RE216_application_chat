@@ -42,38 +42,42 @@ void init_serv_addr(struct sockaddr_in *serv_addr, int port)
    return file_des_new;
  }
 
-//void *connection_handler(void* thread_input)
-void *connection_handler(void* fd_connection)
+void *connection_handler(void* thread_input)
 {
-  //thread_arg *thread= (thread_arg *)thread_input;
-  //int sock_fd_connection = *(int*)thread->thread_fd_connection;
-  //int sock = *(int*)thread->thread_sock;
-  int sock_fd_connection = *(int*)fd_connection;
-
+  thread_arg *thread= (thread_arg *)thread_input;
+  int sock_fd_connection = thread->thread_fd_connection;
+  int sock = thread->thread_sock;
+  int id = thread->thread_nb;
+  int *thread_count_p;
+  thread_count_p = thread->thread_count;
   char message[MSG_MAXLEN];
 
+  free(thread_input);
+
+  if (*thread_count_p>=NB_MAX_CLIENT) {
+    sendline(sock_fd_connection, "connexion refused", MSG_MAXLEN);
+    //close(sock);
+    (*thread_count_p)--;
+    return NULL;
+  }
 
   //read what the client has to say
   memset(message, '\0', MSG_MAXLEN);
   int read_length;
-  printf("Je suis un nouvel thread personnel.\n" );
-  //sendline(sock_fd_connection, "Je suis ta thread perso", MSG_MAXLEN);
 
   while((read_length = readline(sock_fd_connection, message, MSG_MAXLEN)) > 0)
   {
-    printf("< Received : %s\n", message);
-    //sendline(connection_fd, message, strlen(message));
+    printf("< Received [Client %d]: %s\n",id, message);
     sendline(sock_fd_connection, message, MSG_MAXLEN);
-    printf("> Sending : %s\n", message);
+    printf("> Sending [Client %d]: %s\n",id, message);
   }
-/*
+
   // check if /quit
   if(strncmp("/quit", message, 5) == 0) {
     printf("=== Quiting. ===\n");
-    close(thread->thread_sock);//fermeture de la socket
+    close(sock);//fermeture de la socket
 
-  }*/
+  }
 
-  printf("== Je suis un thread qui vient de se terminer - client déconnecté ==\n" );
     return NULL; //une fonction exécutée par un thread doit retourner un pointeur
 }
