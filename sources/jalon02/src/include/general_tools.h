@@ -3,13 +3,18 @@
 
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <arpa/inet.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdint.h>
 #include <unistd.h>
+#include <string.h>
+
+#define MSG_MAXLEN 100
 
 void error(const char *msg);
 int do_socket();
-ssize_t readline(int file_des, void *str, size_t maxlen);
-void sendline(int file_des, const void *str, size_t maxlen);
+void readline(int file_des, void *str);
+void sendline(int file_des, const void *str);
 
 #endif

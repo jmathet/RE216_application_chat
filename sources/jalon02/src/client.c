@@ -1,8 +1,6 @@
 #include "include/client/client_tools.h"
 #include "include/general_tools.h"
 
-#define MSG_MAXLEN 30
-
 int main(int argc,char** argv)
 {
     if (argc != 3)
@@ -31,34 +29,40 @@ int main(int argc,char** argv)
 
 //connect to remote socket
     do_connect(sock, host_addr);
-    printf("=== You are now connected ! ===\n");
 
     char message[MSG_MAXLEN], reply[MSG_MAXLEN];
-    while(1) {
-      printf("Message: ");
-      //get user input
-      //scanf("%s", message);
-      memset(message, '\0', MSG_MAXLEN);
-      fgets(message, MSG_MAXLEN, stdin);
 
-      // send it to server
-      printf("> Sending : %s\n", message);
-      sendline(sock, message, MSG_MAXLEN);
+    readline(sock, message);
+    if(strcmp(message, "TOO_MANY_USERS") == 0) {
+      printf("Too many users connected to the server. Connection closed.\n");
+    }
+    else {
+      while(1) {
+        printf("Message: ");
+        //get user input
+        //scanf("%s", message);
+        memset(message, '\0', MSG_MAXLEN);
+        fgets(message, MSG_MAXLEN, stdin);
 
-      // receive answer
-      memset(reply, '\0', MSG_MAXLEN);
-      readline(sock, reply, MSG_MAXLEN);
-      printf("< Answer received : %s\n", reply);
+        // send it to server
+        printf("> Sending : %s\n", message);
+        sendline(sock, message);
 
-      // check if /quit
-      if(strncmp("/quit", message, 5) == 0) {
-        printf("=== Quiting. ===\n");
-        break;
+        // receive answer
+        memset(reply, '\0', MSG_MAXLEN);
+        readline(sock, reply);
+        printf("< Answer received : %s\n", reply);
+
+        // check if /quit
+        if(strncmp("/quit", message, 5) == 0) {
+          printf("=== Quiting. ===\n");
+          break;
+        }
+
+        // clean message and reply
+        memset(message, '\0', MSG_MAXLEN);
+        memset(reply, '\0', MSG_MAXLEN);
       }
-
-      // clean message and reply
-      memset(message, '\0', MSG_MAXLEN);
-      memset(reply, '\0', MSG_MAXLEN);
     }
 
     close(sock);
