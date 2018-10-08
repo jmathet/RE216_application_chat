@@ -47,19 +47,10 @@ void *connection_handler(void* thread_input)
   thread_arg *thread= (thread_arg *)thread_input;
   int sock_fd_connection = thread->thread_fd_connection;
   int sock = thread->thread_sock;
-  int id = thread->thread_nb;
-  int *thread_count_p;
-  thread_count_p = thread->thread_count;
   char message[MSG_MAXLEN];
 
   free(thread_input);
 
-  if (*thread_count_p>=NB_MAX_CLIENT) {
-    sendline(sock_fd_connection, "connexion refused", MSG_MAXLEN);
-    close(sock);
-    (*thread_count_p)--;
-    return NULL;
-  }
 
   //read what the client has to say
   memset(message, '\0', MSG_MAXLEN);
@@ -67,9 +58,9 @@ void *connection_handler(void* thread_input)
 
   while((read_length = readline(sock_fd_connection, message, MSG_MAXLEN)) > 0)
   {
-    printf("< Received [Client %d]: %s\n",id, message);
+    printf("< Received : %s\n", message);
     sendline(sock_fd_connection, message, MSG_MAXLEN);
-    printf("> Sending [Client %d]: %s\n",id, message);
+    printf("> Sending : %s\n", message);
   }
 
   // check if /quit

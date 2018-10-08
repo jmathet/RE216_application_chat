@@ -15,8 +15,6 @@
 typedef struct thread_arg {
   int thread_fd_connection;
   int thread_sock;
-  int thread_nb;
-  int *thread_count;
 } thread_arg;
 
 void init_serv_addr(struct sockaddr_in *serv_addr, int port);
