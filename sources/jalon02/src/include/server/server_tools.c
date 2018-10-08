@@ -57,14 +57,14 @@ void *connection_handler(void* thread_input)
     memset(message, '\0', MSG_MAXLEN);
     readline(thread_fd_connection, message);
     printf("< Received : %s\n", message);
-    //sendline(thread_fd_connection, message);
+    sendline(thread_fd_connection, message);
     printf("> Sending : %s\n", message);
 
     // check if /quit
     if(strncmp("/quit", message, 5) == 0)
       break;
   }
-  
+
   printf("=== Connection stopped ===\n");
   close(thread_fd_connection); // closing the fd associated to the connection
   return NULL; // a thread should return a pointer

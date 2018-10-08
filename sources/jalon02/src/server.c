@@ -36,13 +36,14 @@ int main(int argc, char** argv)
         socklen_t addrlen = sizeof(struct sockaddr);
         connection_fd = do_accept(sock, (struct sockaddr*)&serv_addr, &addrlen);
 
-        // check if the max number of users isn't reached
-        if(nb_total_connections >= USERS_NB_MAX) {
+        // check if there is a reason to refuse the client
+        if(nb_total_connections >= USERS_NB_MAX) {// is the max numbers of clients reached ?
           printf("! Connection from a client closed : too many users.\n");
-          sendline(connection_fd, "! Too many users connected to the server. Connection closed.");
+          sendline(connection_fd, "TOO_MANY_USERS");
           close(connection_fd);
         }
         else { // there is remaining slots for a new user
+          sendline(connection_fd, "OK");
           // thread args initialisation
           thread_input = (thread_arg*)malloc(sizeof *thread_input);
           thread_input->thread_fd_connection = connection_fd;
