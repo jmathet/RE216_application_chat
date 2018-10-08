@@ -1,9 +1,5 @@
 #include "server_tools.h"
 
-
-
-
-
 void init_serv_addr(struct sockaddr_in *serv_addr, int port)
  {
    /* Modify specified sockaddr_in for the server side with specified port */
@@ -44,31 +40,34 @@ void init_serv_addr(struct sockaddr_in *serv_addr, int port)
 
 void *connection_handler(void* thread_input)
 {
-  thread_arg *thread= (thread_arg *)thread_input;
-  int sock_fd_connection = thread->thread_fd_connection;
-  int sock = thread->thread_sock;
+  // Get thread args
+  thread_arg * thread_args= (thread_arg *)thread_input;
+  int thread_fd_connection = thread_args->thread_fd_connection;
+
+  ++ *(thread_args->pt_nb_conn); // increase number of nb_total_connections
+  printf("=== Connection %i opened ===\n", *(thread_args->pt_nb_conn));
+  free(thread_input); // Free thread_input
+
+  // INITS
   char message[MSG_MAXLEN];
-
-  free(thread_input);
-
+  int read_length;
 
   //read what the client has to say
   memset(message, '\0', MSG_MAXLEN);
-  int read_length;
 
-  while((read_length = readline(sock_fd_connection, message, MSG_MAXLEN)) > 0)
+  while((read_length = readline(thread_fd_connection, message, MSG_MAXLEN)) > 0)
   {
     printf("< Received : %s\n", message);
-    sendline(sock_fd_connection, message, MSG_MAXLEN);
+    sendline(thread_fd_connection, message, MSG_MAXLEN);
     printf("> Sending : %s\n", message);
   }
 
   // check if /quit
   if(strncmp("/quit", message, 5) == 0) {
-    printf("=== Quiting. ===\n");
-    close(sock);//fermeture de la socket
-
+    printf("=== Connection stopped ===\n");
+    close(thread_fd_connection); // closing the fd associated to the connection
+    
   }
 
-    return NULL; //une fonction exécutée par un thread doit retourner un pointeur
+    return NULL; // a thread should return a pointer
 }

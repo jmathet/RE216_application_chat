@@ -1,67 +1,63 @@
 #include "include/server/server_tools.h"
 #include "include/general_tools.h"
 
-#define MSG_MAXLEN 30
+#define USERS_NB_MAX 2
 
 int main(int argc, char** argv)
 {
+    // INPUT ARGS CHECK
     if (argc != 2) {
         fprintf(stderr, "usage: RE216_SERVER port\n");
         exit(EXIT_FAILURE);
     }
-
+    // INPUT PORT CHECK
     int port = atoi(argv[1]);
     if(port <= 1024) {
       fprintf(stderr, "Please use a non reserved port number.");
       exit(EXIT_FAILURE);
     }
 
-    int sock;
+    // INITS
+    int sock, connection_fd;
+    int nb_total_connections = 0;
     struct sockaddr_in serv_addr;
+    pthread_t thread;
+    thread_arg * thread_input; // args for thread creation
 
-    //create the socket, check for validity!
+    // SOCKET SET-UP
     sock = do_socket();
-
-    //init the serv_add structure
     init_serv_addr(&serv_addr, port);
-
-    //perform the binding
-    //we bind on the tcp port specified
     do_bind(sock, serv_addr);
+    do_listen(sock, USERS_NB_MAX);
 
-    //specify the socket to be a server socket and listen for at most 20 concurrent client
-    do_listen(sock, 20);
-    pthread_t thread_id;
-    thread_arg * thread_input; //déclaration d'un pointeur sur une strcuture thread_arg
-
-
-
-
-    while (1)
+    while(1)
     {
-        //accept connection from client
+        // accept connection from client
         socklen_t addrlen = sizeof(struct sockaddr);
-        int connection_fd = do_accept(sock, (struct sockaddr*)&serv_addr, &addrlen);
+        connection_fd = do_accept(sock, (struct sockaddr*)&serv_addr, &addrlen);
 
-        //initialisation thread
-        thread_input = (thread_arg*)malloc(sizeof *thread_input);
-        thread_input->thread_fd_connection = connection_fd;
-        thread_input->thread_sock = sock;
-
-        //création thread
-        if( pthread_create( &thread_id , NULL ,  connection_handler , (void*)thread_input) != 0)
-        {
-            free(thread_input);
-            error("Erreur création du tread.");
+        // check if the max number of users isn't reached
+        if(nb_total_connections >= USERS_NB_MAX) {
+          printf("! Connection from a client closed : too many users.\n");
+          sendline(connection_fd, "! Too many users connected to the server. Connection closed.", 61);
+          close(connection_fd);
         }
-        
+        else { // there is remaining slots for a new user
+          // thread args initialisation
+          thread_input = (thread_arg*)malloc(sizeof *thread_input);
+          thread_input->thread_fd_connection = connection_fd;
+          thread_input->pt_nb_conn = &nb_total_connections;
 
+          // thread creation
+          if( pthread_create( &thread, NULL ,  connection_handler , (void*)thread_input) != 0)
+          {
+              free(thread_input);
+              close(sock);
+              error("Impossible to create a thread.");
+        } // END else
+      }
+    } // END while(1)
 
-
-    }
-
-    //clean up server socket
     close(sock);
-
     return 0;
 }

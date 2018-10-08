@@ -1,8 +1,6 @@
 #include "include/client/client_tools.h"
 #include "include/general_tools.h"
 
-#define MSG_MAXLEN 30
-
 int main(int argc,char** argv)
 {
     if (argc != 3)
