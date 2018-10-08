@@ -39,7 +39,7 @@ int main(int argc, char** argv)
         // check if the max number of users isn't reached
         if(nb_total_connections >= USERS_NB_MAX) {
           printf("! Connection from a client closed : too many users.\n");
-          sendline(connection_fd, "! Too many users connected to the server. Connection closed.", 61);
+          sendline(connection_fd, "! Too many users connected to the server. Connection closed.");
           close(connection_fd);
         }
         else { // there is remaining slots for a new user

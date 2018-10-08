@@ -1,6 +1,6 @@
 #ifndef SERVER_TOOLS_H_
 #define SERVER_TOOLS_H_
-#define MSG_MAXLEN 30
+
 #define NB_MAX_CLIENT 2
 
 #include <sys/types.h>

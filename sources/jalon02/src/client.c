@@ -40,11 +40,11 @@ int main(int argc,char** argv)
 
       // send it to server
       printf("> Sending : %s\n", message);
-      sendline(sock, message, MSG_MAXLEN);
+      sendline(sock, message);
 
       // receive answer
       memset(reply, '\0', MSG_MAXLEN);
-      readline(sock, reply, MSG_MAXLEN);
+      //readline(sock, reply);
       printf("< Answer received : %s\n", reply);
 
       // check if /quit
