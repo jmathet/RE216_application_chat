@@ -29,7 +29,6 @@ int main(int argc,char** argv)
 
 //connect to remote socket
     do_connect(sock, host_addr);
-    printf("=== You are now connected ! ===\n");
 
     char message[MSG_MAXLEN], reply[MSG_MAXLEN];
     while(1) {
