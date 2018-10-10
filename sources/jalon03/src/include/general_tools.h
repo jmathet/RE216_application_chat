@@ -16,5 +16,7 @@ void error(const char *msg);
 int do_socket();
 void readline(int file_des, void *str);
 void sendline(int file_des, const void *str);
+users users_add_user(users list, int thread_id, char* pseudo, char* IP_addr, char* port);
+users users_delete_user(users list, users user);
 
 #endif

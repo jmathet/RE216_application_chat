@@ -17,6 +17,14 @@ typedef struct thread_arg {
   int * pt_nb_conn;
 } thread_arg;
 
+typedef struct users{
+  int thread_id;
+  char *pseudo;
+  char *IP_addr;
+  char *port;
+  struct users next*;
+} users;
+
 void init_serv_addr(struct sockaddr_in *serv_addr, int port);
 void do_bind(int socket, struct sockaddr_in addr_in);
 void do_listen(int socket, int nb_max);

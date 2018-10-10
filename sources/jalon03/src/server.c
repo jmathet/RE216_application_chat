@@ -55,9 +55,9 @@ int main(int argc, char** argv)
               free(thread_input);
               close(sock);
               error("Impossible to create a thread.");
+          }
         } // END else
-      }
-    } // END while(1)
+      } // END while(1)
 
     close(sock);
     return 0;
