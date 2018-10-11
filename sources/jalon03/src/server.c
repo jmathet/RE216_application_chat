@@ -18,11 +18,11 @@ int main(int argc, char** argv)
     }
 
     // INITS
-    int sock, connection_fd;
-    int nb_total_connections = 0;
+    int sock, connection_fd, nb_total_connections = 0;
     struct sockaddr_in serv_addr;
     pthread_t thread;
     thread_arg * thread_input; // args for thread creation
+    struct users * first_user = NULL;
 
     // SOCKET SET-UP
     sock = do_socket();
@@ -47,7 +47,9 @@ int main(int argc, char** argv)
           // thread args initialisation
           thread_input = (thread_arg*)malloc(sizeof *thread_input);
           thread_input->thread_fd_connection = connection_fd;
+          thread_input->linked_user_id = nb_total_connections + 1;
           thread_input->pt_nb_conn = &nb_total_connections;
+          thread_input->users = first_user;
 
           // thread creation
           if( pthread_create( &thread, NULL ,  connection_handler , (void*)thread_input) != 0)
@@ -59,6 +61,7 @@ int main(int argc, char** argv)
         } // END else
       } // END while(1)
 
+    // CLEANING
     close(sock);
     return 0;
 }
