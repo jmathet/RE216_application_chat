@@ -45,7 +45,7 @@ void *connection_handler(void* thread_input)
   // Get thread args
   thread_arg * thread_args = (thread_arg *)thread_input;
   int thread_fd_connection = thread_args->thread_fd_connection;
-  struct users first_user = thread_args->users;
+  struct users * first_user = thread_args->users;
 
   ++ *(thread_args->pt_nb_conn); // increase number of nb_total_connections
   printf("=== Connection %i opened ===\n", *(thread_args->pt_nb_conn));
@@ -72,7 +72,7 @@ void *connection_handler(void* thread_input)
   return NULL; // a thread should return a pointer
 }
 
-struct users users_add_user(struct users * list, int thread_id, char* pseudo, char* IP_addr, int port){
+struct users* users_add_user(struct users * list, int user_id, char* pseudo, char* IP_addr, int port){
   // add a new user at the end of the list users
   struct users * new_user = malloc(sizeof( struct users));
 
@@ -80,7 +80,7 @@ struct users users_add_user(struct users * list, int thread_id, char* pseudo, ch
     error("error creation new user");
   }
 
-  new_user->thread_id = thread_id;
+  new_user->user_id = user_id;
   new_user->pseudo = pseudo;
   new_user->IP_addr = IP_addr;
   new_user->port = port;
@@ -101,17 +101,17 @@ struct users users_add_user(struct users * list, int thread_id, char* pseudo, ch
   return list;
 }
 
-struct users users_delete_user(struct users * list, struct users * user){
-  if (user->thread_id == list->thread_id) {
+struct users* users_delete_user(struct users * list, struct users * user){
+  if (user->user_id == list->user_id) {
     return list->next;
   }
-  else if (user->thread_id == liste->next->thread_id){
+  else if (user->user_id == list->next->user_id){
     list->next = NULL;
     return list;
   }
   else{
     while (list->next!=NULL) {
-      if (user->thread_id==list->next->thread_id) {
+      if (user->user_id==list->next->user_id) {
         list->next=list->next->next;
         return list;
       } else {
