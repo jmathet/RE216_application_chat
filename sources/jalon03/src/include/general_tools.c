@@ -12,7 +12,7 @@ int do_socket()
   /* Create a socket and return the associated file descriptor */
   int file_des = socket(AF_INET, SOCK_STREAM, 0);
   if (file_des == -1) {
-    error("Error during socket creation");
+    error("socket");
   }
   return file_des;
 }
@@ -49,7 +49,7 @@ int read_int(int file_des) {
   do {
     read_count = read(file_des, data_received, left);
     if(read_count == -1)
-      error("Error while reading.");
+      error("read");
     else {
       data_received += read_count;
       left -= read_count;
@@ -72,7 +72,7 @@ void read_line(int file_des, void *str)
   do {
     read_count = read(file_des, str, left); // writing directly into the buffer
     if(read_count == -1)
-      error("Error while reading.");
+      error("read");
     else {
       str += read_count;
       left -= read_count;

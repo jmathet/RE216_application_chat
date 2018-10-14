@@ -15,7 +15,7 @@ void init_serv_addr(struct sockaddr_in *serv_addr, int port)
    /* Perform a bind on specified socket */
    int bind_result = bind(socket, (struct sockaddr *) &addr_in, sizeof(addr_in));
    if (bind_result == -1) {
-     error("Error during socket binding");
+     error("bind");
    }
  }
 
@@ -24,7 +24,7 @@ void init_serv_addr(struct sockaddr_in *serv_addr, int port)
    /* Switch specified socket in the listen state */
    int listen_result = listen(socket, nb_max);
    if (listen_result == -1) {
-     error("Error during socket listening");
+     error("listen");
    }
  }
 
@@ -32,9 +32,8 @@ void init_serv_addr(struct sockaddr_in *serv_addr, int port)
  {
    /* Accept a connection with the specified socket and return the file des from accepted socket*/
    int file_des_new = accept(socket, addr, addrlen);
-   if(file_des_new == -1) {
-     error("Error while accepting a connection");
-   }
+   if(file_des_new == -1)
+     error("accept");
    return file_des_new;
  }
 
@@ -76,9 +75,8 @@ struct users* users_add_user(struct users * list, int user_id, char* pseudo, cha
   // add a new user at the end of the list users
   struct users * new_user = malloc(sizeof( struct users));
 
-  if (new_user == NULL) {
-    error("error creation new user");
-  }
+  if (new_user == NULL)
+    error("malloc");
 
   new_user->user_id = user_id;
   new_user->pseudo = pseudo;

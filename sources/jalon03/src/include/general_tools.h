@@ -10,7 +10,7 @@
 #include <unistd.h>
 #include <string.h>
 
-#define MSG_MAXLEN 100
+#define MSG_MAXLEN 1000
 
 enum SERVER_STATUS {
     SERVER_RUNNING,

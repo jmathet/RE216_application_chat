@@ -5,32 +5,37 @@
 
 int main(int argc, char** argv)
 {
-    // INPUT ARGS CHECK
-    if (argc != 2) {
-        fprintf(stderr, "usage: RE216_SERVER port\n");
-        exit(EXIT_FAILURE);
-    }
-    // INPUT PORT CHECK
-    int port = atoi(argv[1]);
-    if(port <= 1024) {
-      fprintf(stderr, "Please use a non reserved port number.");
-      exit(EXIT_FAILURE);
-    }
-
-    // INITS
+    /* INITS */
+    int port;
     int sock, connection_fd, status, nb_total_connections = 0;
     struct sockaddr_in serv_addr;
     pthread_t thread;
     thread_arg * thread_input; // args for thread creation
     struct users * first_user = NULL;
 
-    // SOCKET SET-UP
+    /* ARGS CHECK */
+    if (argc != 2) {
+        fprintf(stderr, "usage: RE216_SERVER port\n");
+        exit(EXIT_FAILURE);
+    }
+    port = atoi(argv[1]);
+    if(port <= 1024) {
+      fprintf(stderr, "Please use a non reserved port number.");
+      exit(EXIT_FAILURE);
+    }
+
+
+    /* SOCKET SET-UP */
     sock = do_socket();
     init_serv_addr(&serv_addr, port);
     do_bind(sock, serv_addr);
     do_listen(sock, USERS_NB_MAX);
     status=SERVER_RUNNING;
 
+    /* SIGNAL HANDLERS */
+    // TODO : gérer la fermeture du serveur correctement + nettoyage + gestion fin des threads
+
+    /* CHAT SERVER */
     while(status != SERVER_QUITTING)
     {
         // accept connection from client
@@ -57,7 +62,7 @@ int main(int argc, char** argv)
           {
               free(thread_input);
               close(sock);
-              error("Impossible to create a thread.");
+              error("pthread_create");
           }
         } // END else
       } // END while(1)

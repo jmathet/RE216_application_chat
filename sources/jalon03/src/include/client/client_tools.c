@@ -14,6 +14,6 @@ void init_client_addr(struct sockaddr_in *serv_addr, char *ip, int port)
  {
    int connect_result = connect(sock, (struct sockaddr *) &host_addr, sizeof(host_addr));
    if (connect_result == -1) {
-     error("Error during connection");
+     error("connect");
    }
  }
