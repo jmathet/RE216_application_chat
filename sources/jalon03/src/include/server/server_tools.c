@@ -130,3 +130,18 @@ char * users_get_user_pseudo(struct users * users, int user_id){
   }
   return users->pseudo;
 }
+
+void user_set_pseudo(struct users * users, int user_id, char * pseudo){
+  while (users->user_id!=user_id) {
+    users = users->next;
+  }
+  users->pseudo = pseudo;
+}
+
+char * users_get_pseudo_list(struct users* users){
+  char * list_pseudo = "Online users are \n";
+  while (users!=NULL) {
+    strcat(list_pseudo, users->pseudo);
+    users = users->next;
+  }
+}
