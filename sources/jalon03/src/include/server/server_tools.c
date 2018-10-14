@@ -13,38 +13,28 @@ void init_serv_addr(struct sockaddr_in *serv_addr, int port)
  void do_bind(int socket, struct sockaddr_in addr_in)
  {
    /* Perform a bind on specified socket */
-   int bind_result;
-   do {
-     bind_result = bind(socket, (struct sockaddr *) &addr_in, sizeof(addr_in));
-   } while ((bind_result == -1) && (errno == EAGAIN || errno == EINTR));
-
-   if (bind_result == -1)
-     error("bind");
+   int bind_result = bind(socket, (struct sockaddr *) &addr_in, sizeof(addr_in));
+   if (bind_result == -1) {
+     error("Error during socket binding");
+   }
  }
 
  void do_listen(int socket, int nb_max)
  {
    /* Switch specified socket in the listen state */
-   int listen_result;
-   do{
-     listen_result = listen(socket, nb_max);
-   } while ((listen_result == -1) && (errno == EAGAIN || errno == EINTR));
-
-   if (listen_result == -1)
-     error("listen");
+   int listen_result = listen(socket, nb_max);
+   if (listen_result == -1) {
+     error("Error during socket listening");
+   }
  }
 
  int do_accept(int socket, struct sockaddr *addr, socklen_t* addrlen)
  {
    /* Accept a connection with the specified socket and return the file des from accepted socket*/
-   int file_des_new;
-   do {
-     file_des_new = accept(socket, addr, addrlen);
-   } while ((file_des_new == -1) && (errno == EAGAIN || errno == EINTR));
-
-   if(file_des_new == -1)
-     error("accept");
-
+   int file_des_new = accept(socket, addr, addrlen);
+   if(file_des_new == -1) {
+     error("Error while accepting a connection");
+   }
    return file_des_new;
  }
 
@@ -65,15 +55,27 @@ void *connection_handler(void* thread_input)
   // INITS
 
   char message[MSG_MAXLEN];
-  users_add_user(users_list, my_id, "bob", "127.0.0.1", 8080);
+  users_list = users_add_user(users_list, my_id, "Inconnu", "127.0.0.1", 8080);
 
   while(1) {
     //read what the client has to say
     memset(message, '\0', MSG_MAXLEN);
-    read_line(thread_fd_connection, message);
-    printf("< Received : %s\n", message);
-    send_line(thread_fd_connection, message);
-    printf("> Sending : %s\n", message);
+    readline(thread_fd_connection, message);
+    printf("< Received [%s] : %s\n", users_get_user_pseudo(users_list, my_id), message);
+    if (strncmp("/nick", message, 5) == 0) {
+      char * pseudo = malloc((strlen(message)-6)*sizeof(char));
+      strncpy(pseudo, message+6*sizeof(char), strlen(message)-7);
+      user_set_pseudo(users_list, my_id, pseudo);
+      memset(message, '\0', MSG_MAXLEN);
+      strcpy(message, "Hello ");
+      strcat (message, users_get_user_pseudo(users_list, my_id));
+    }
+    else if (strncmp("/who", message, 4) == 0) {
+      memset(message, '\0', MSG_MAXLEN);
+      strcpy(message, users_get_pseudo_list(users_list));
+    }
+    sendline(thread_fd_connection, message);
+    printf("> Sending [%s] : %s\n", users_get_user_pseudo(users_list, my_id),message);
     // check if /quit
     if(strncmp("/quit", message, 5) == 0)
       break;
@@ -88,8 +90,9 @@ struct users* users_add_user(struct users * list, int user_id, char* pseudo, cha
   // add a new user at the end of the list users
   struct users * new_user = malloc(sizeof( struct users));
 
-  if (new_user == NULL)
-    error("malloc");
+  if (new_user == NULL) {
+    error("error creation new user");
+  }
 
   new_user->user_id = user_id;
   new_user->pseudo = pseudo;
@@ -138,4 +141,19 @@ char * users_get_user_pseudo(struct users * users, int user_id){
     users = users->next;
   }
   return users->pseudo;
+}
+
+void user_set_pseudo(struct users * users, int user_id, char * pseudo){
+  while (users->user_id!=user_id) {
+    users = users->next;
+  }
+  users->pseudo = pseudo;
+}
+
+char * users_get_pseudo_list(struct users* users){
+  char * list_pseudo = "Online users are \n";
+  while (users!=NULL) {
+    strcat(list_pseudo, users->pseudo);
+    users = users->next;
+  }
 }
