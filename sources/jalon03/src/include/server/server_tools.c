@@ -45,7 +45,8 @@ void *connection_handler(void* thread_input)
   // Get thread args
   thread_arg * thread_args = (thread_arg *)thread_input;
   int thread_fd_connection = thread_args->thread_fd_connection;
-  struct users * first_user = thread_args->users;
+  int my_id = thread_args->linked_user_id;
+  struct users * users_list = thread_args->users;
 
   ++ *(thread_args->pt_nb_conn); // increase number of nb_total_connections
   printf("=== Connection %i opened ===\n", *(thread_args->pt_nb_conn));
@@ -54,6 +55,8 @@ void *connection_handler(void* thread_input)
   // INITS
 
   char message[MSG_MAXLEN];
+  users_add_user(users_list, my_id, "bob", "127.0.0.1", 8080);
+
   while(1) {
     //read what the client has to say
     memset(message, '\0', MSG_MAXLEN);
@@ -61,7 +64,6 @@ void *connection_handler(void* thread_input)
     printf("< Received : %s\n", message);
     sendline(thread_fd_connection, message);
     printf("> Sending : %s\n", message);
-
     // check if /quit
     if(strncmp("/quit", message, 5) == 0)
       break;
@@ -120,4 +122,11 @@ struct users* users_delete_user(struct users * list, struct users * user){
     }
   }
   return list;
+}
+
+char * users_get_user_pseudo(struct users * users, int user_id){
+  while (users->user_id!=user_id) {
+    users = users->next;
+  }
+  return users->pseudo;
 }
