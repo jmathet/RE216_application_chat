@@ -12,8 +12,11 @@ void init_client_addr(struct sockaddr_in *serv_addr, char *ip, int port)
 
  void do_connect(int sock, struct sockaddr_in host_addr)
  {
-   int connect_result = connect(sock, (struct sockaddr *) &host_addr, sizeof(host_addr));
-   if (connect_result == -1) {
-     error("Error during connection");
-   }
+   int connect_result;
+   do {
+     connect_result = connect(sock, (struct sockaddr *) &host_addr, sizeof(host_addr));
+   } while ((connect_result == -1) && (errno == EAGAIN || errno == EINTR));
+
+   if (connect_result == -1)
+     error("connect");
  }

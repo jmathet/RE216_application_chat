@@ -9,12 +9,25 @@
 #include <stdint.h>
 #include <unistd.h>
 #include <string.h>
+#include <errno.h>
 
-#define MSG_MAXLEN 100
+#define MSG_MAXLEN 1000
+
+enum SERVER_STATUS {
+    SERVER_RUNNING,
+    SERVER_QUITTING,
+    SERVER_FULL
+};
+
+enum CLIENT_STATUS {
+    CLIENT_RUNNING,
+    CLIENT_QUITTING
+};
 
 void error(const char *msg);
 int do_socket();
-void readline(int file_des, void *str);
-void sendline(int file_des, const void *str);
-
+void send_int(int file_des, int to_send);
+int read_int(int file_des);
+void read_line(int file_des, void *str);
+void send_line(int file_des, const void *str);
 #endif

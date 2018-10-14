@@ -10,6 +10,7 @@
 #include <netinet/in.h>
 #include <string.h>
 #include <pthread.h>
+#include <signal.h>
 #include "../general_tools.h"
 
 struct users{
