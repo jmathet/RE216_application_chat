@@ -60,7 +60,7 @@ void *connection_handler(void* thread_input)
   while(1) {
     //read what the client has to say
     memset(message, '\0', MSG_MAXLEN);
-    readline(thread_fd_connection, message);
+    read_line(thread_fd_connection, message);
     printf("< Received [%s] : %s\n", users_get_user_pseudo(users_list, my_id), message);
     if (strncmp("/nick", message, 5) == 0) {
       char * pseudo = malloc((strlen(message)-6)*sizeof(char));
@@ -74,7 +74,7 @@ void *connection_handler(void* thread_input)
       memset(message, '\0', MSG_MAXLEN);
       strcpy(message, users_get_pseudo_list(users_list));
     }
-    sendline(thread_fd_connection, message);
+    send_line(thread_fd_connection, message);
     printf("> Sending [%s] : %s\n", users_get_user_pseudo(users_list, my_id),message);
     // check if /quit
     if(strncmp("/quit", message, 5) == 0)
