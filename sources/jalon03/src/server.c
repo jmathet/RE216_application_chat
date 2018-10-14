@@ -6,7 +6,7 @@
 int main(int argc, char** argv)
 {
     /* INITS */
-    int port;
+    int port, enable=1;
     int sock, connection_fd, status, nb_total_connections = 0;
     struct sockaddr_in serv_addr;
     pthread_t thread;
@@ -27,6 +27,8 @@ int main(int argc, char** argv)
 
     /* SOCKET SET-UP */
     sock = do_socket();
+    if(setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) == -1)
+      error("setsockopt");
     init_serv_addr(&serv_addr, port);
     do_bind(sock, serv_addr);
     do_listen(sock, USERS_NB_MAX);

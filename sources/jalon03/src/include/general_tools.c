@@ -10,10 +10,14 @@ void error(const char *msg)
 int do_socket()
 {
   /* Create a socket and return the associated file descriptor */
-  int file_des = socket(AF_INET, SOCK_STREAM, 0);
-  if (file_des == -1) {
+  int file_des;
+  do {
+    file_des = socket(AF_INET, SOCK_STREAM, 0);
+  } while ((file_des == -1) && (errno == EAGAIN || errno == EINTR));
+
+  if (file_des == -1)
     error("socket");
-  }
+
   return file_des;
 }
 
@@ -28,7 +32,7 @@ void send_int(int file_des, int to_send) {
 
   do { // sending the length of coming string, based on the size of int32_t (pseudo-protocol)
     sent = write(file_des, data, left);
-    if(sent == -1)
+    if((sent == -1) && (errno != EAGAIN) && (errno !=EINTR))
       error("send");
     else {
       data += sent;
@@ -48,7 +52,7 @@ int read_int(int file_des) {
   int read_count = 0;
   do {
     read_count = read(file_des, data_received, left);
-    if(read_count == -1)
+    if((read_count == -1) && (errno != EAGAIN) && (errno !=EINTR))
       error("read");
     else {
       data_received += read_count;
@@ -71,7 +75,7 @@ void read_line(int file_des, void *str)
   int read_count = 0;
   do {
     read_count = read(file_des, str, left); // writing directly into the buffer
-    if(read_count == -1)
+    if((read_count == -1) && (errno != EAGAIN) && (errno !=EINTR))
       error("read");
     else {
       str += read_count;
@@ -94,7 +98,7 @@ void send_line(int file_des, const void *str)
   int read_count = 0;
   do {
     read_count = write(file_des, str, left);
-    if(read_count == -1)
+    if((read_count == -1) && (errno != EAGAIN) && (errno !=EINTR))
       error("send");
     else {
       str += read_count;

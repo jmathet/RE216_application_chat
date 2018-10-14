@@ -9,6 +9,7 @@
 #include <stdint.h>
 #include <unistd.h>
 #include <string.h>
+#include <errno.h>
 
 #define MSG_MAXLEN 1000
 
