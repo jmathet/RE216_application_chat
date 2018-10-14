@@ -55,15 +55,27 @@ void *connection_handler(void* thread_input)
   // INITS
 
   char message[MSG_MAXLEN];
-  users_add_user(users_list, my_id, "bob", "127.0.0.1", 8080);
+  users_list = users_add_user(users_list, my_id, "Inconnu", "127.0.0.1", 8080);
 
   while(1) {
     //read what the client has to say
     memset(message, '\0', MSG_MAXLEN);
     readline(thread_fd_connection, message);
-    printf("< Received : %s\n", message);
+    printf("< Received [%s] : %s\n", users_get_user_pseudo(users_list, my_id), message);
+    if (strncmp("/nick", message, 5) == 0) {
+      char * pseudo = malloc((strlen(message)-6)*sizeof(char));
+      strncpy(pseudo, message+6*sizeof(char), strlen(message)-7);
+      user_set_pseudo(users_list, my_id, pseudo);
+      memset(message, '\0', MSG_MAXLEN);
+      strcpy(message, "Hello ");
+      strcat (message, users_get_user_pseudo(users_list, my_id));
+    }
+    else if (strncmp("/who", message, 4) == 0) {
+      memset(message, '\0', MSG_MAXLEN);
+      strcpy(message, users_get_pseudo_list(users_list));
+    }
     sendline(thread_fd_connection, message);
-    printf("> Sending : %s\n", message);
+    printf("> Sending [%s] : %s\n", users_get_user_pseudo(users_list, my_id),message);
     // check if /quit
     if(strncmp("/quit", message, 5) == 0)
       break;
