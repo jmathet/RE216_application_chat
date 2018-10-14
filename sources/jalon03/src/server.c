@@ -18,7 +18,7 @@ int main(int argc, char** argv)
     }
 
     // INITS
-    int sock, connection_fd, nb_total_connections = 0;
+    int sock, connection_fd, status, nb_total_connections = 0;
     struct sockaddr_in serv_addr;
     pthread_t thread;
     thread_arg * thread_input; // args for thread creation
@@ -29,8 +29,9 @@ int main(int argc, char** argv)
     init_serv_addr(&serv_addr, port);
     do_bind(sock, serv_addr);
     do_listen(sock, USERS_NB_MAX);
+    status=SERVER_RUNNING;
 
-    while(1)
+    while(status != SERVER_QUITTING)
     {
         // accept connection from client
         socklen_t addrlen = sizeof(struct sockaddr);
@@ -39,11 +40,11 @@ int main(int argc, char** argv)
         // check if there is a reason to refuse the client
         if(nb_total_connections >= USERS_NB_MAX) {// is the max numbers of clients reached ?
           printf("! Connection from a client closed : too many users.\n");
-          sendline(connection_fd, "TOO_MANY_USERS");
+          send_int(connection_fd, SERVER_FULL);
           close(connection_fd);
         }
         else { // there is remaining slots for a new user
-          sendline(connection_fd, "OK");
+          send_int(connection_fd, SERVER_RUNNING);
           // thread args initialisation
           thread_input = (thread_arg*)malloc(sizeof *thread_input);
           thread_input->thread_fd_connection = connection_fd;

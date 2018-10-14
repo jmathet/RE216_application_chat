@@ -57,9 +57,9 @@ void *connection_handler(void* thread_input)
   while(1) {
     //read what the client has to say
     memset(message, '\0', MSG_MAXLEN);
-    readline(thread_fd_connection, message);
+    read_line(thread_fd_connection, message);
     printf("< Received : %s\n", message);
-    sendline(thread_fd_connection, message);
+    send_line(thread_fd_connection, message);
     printf("> Sending : %s\n", message);
 
     // check if /quit

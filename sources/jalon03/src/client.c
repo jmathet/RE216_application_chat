@@ -32,8 +32,7 @@ int main(int argc,char** argv)
 
     char message[MSG_MAXLEN], reply[MSG_MAXLEN];
 
-    readline(sock, message);
-    if(strcmp(message, "TOO_MANY_USERS") == 0) {
+    if(read_int(sock) == SERVER_FULL) {
       printf("Too many users connected to the server. Connection closed.\n");
     }
     else {
@@ -46,11 +45,11 @@ int main(int argc,char** argv)
 
         // send it to server
         printf("> Sending : %s\n", message);
-        sendline(sock, message);
+          send_line(sock, message);
 
         // receive answer
         memset(reply, '\0', MSG_MAXLEN);
-        readline(sock, reply);
+          read_line(sock, reply);
         printf("< Answer received : %s\n", reply);
 
         // check if /quit
