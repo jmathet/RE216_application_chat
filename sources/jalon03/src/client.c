@@ -3,6 +3,7 @@
 
 int main(int argc,char** argv)
 {
+    int status;
     if (argc != 3)
     {
         fprintf(stderr,"usage: RE216_CLIENT hostname port\n");
@@ -34,9 +35,11 @@ int main(int argc,char** argv)
 
     if(read_int(sock) == SERVER_FULL) {
       printf("Too many users connected to the server. Connection closed.\n");
+      status=CLIENT_QUITTING;
     }
     else {
-      while(1) {
+      status=CLIENT_RUNNING;
+      while(status != CLIENT_QUITTING) {
         printf("Message: ");
         //get user input
         //scanf("%s", message);
@@ -55,7 +58,7 @@ int main(int argc,char** argv)
         // check if /quit
         if(strncmp("/quit", message, 5) == 0) {
           printf("=== Quiting. ===\n");
-          break;
+          status = CLIENT_QUITTING;
         }
 
         // clean message and reply
