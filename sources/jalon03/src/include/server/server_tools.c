@@ -41,6 +41,8 @@ void init_serv_addr(struct sockaddr_in *serv_addr, int port)
 void *connection_handler(void* thread_input)
 {
   /* Function called at the creation of a thread due to a new connection on the server */
+  // Inits
+  char message[MSG_MAXLEN];
 
   // Get thread args
   thread_arg * thread_args = (thread_arg *)thread_input;
@@ -52,9 +54,6 @@ void *connection_handler(void* thread_input)
   printf("=== Connection %i opened ===\n", *(thread_args->pt_nb_conn));
   free(thread_input); // Free thread_input
 
-  // INITS
-
-  char message[MSG_MAXLEN];
   users_list = users_add_user(users_list, my_id, "Inconnu", "127.0.0.1", 8080);
 
   while(1) {
@@ -62,20 +61,27 @@ void *connection_handler(void* thread_input)
     memset(message, '\0', MSG_MAXLEN);
     read_line(thread_fd_connection, message);
     printf("< Received [%s] : %s\n", users_get_user_pseudo(users_list, my_id), message);
-    if (strncmp("/nick", message, 5) == 0) {
-      char * pseudo = malloc((strlen(message)-6)*sizeof(char));
-      strncpy(pseudo, message+6*sizeof(char), strlen(message)-7);
+
+    if (strncmp("/nick", message, strlen("/nick")) == 0) {
+      char * pseudo = malloc( (strlen(message)-strlen("/nick ")) * sizeof(char));
+      strncpy(pseudo, message + strlen("/nick ")*sizeof(char), strlen(message)-strlen("/nick ")-1); // -1 to remove '\n'
       user_set_pseudo(users_list, my_id, pseudo);
       memset(message, '\0', MSG_MAXLEN);
       strcpy(message, "Hello ");
       strcat (message, users_get_user_pseudo(users_list, my_id));
     }
-    else if (strncmp("/who", message, 4) == 0) {
+    else if (strncmp("/who", message, strlen("/who")) == 0) {
+      char * pseudo_list;
+      pseudo_list = users_get_pseudo_list(users_list, NULL);
       memset(message, '\0', MSG_MAXLEN);
-      strcpy(message, users_get_pseudo_list(users_list));
+      strcpy(message, pseudo_list);
+      free(pseudo_list);
     }
+
     send_line(thread_fd_connection, message);
+
     printf("> Sending [%s] : %s\n", users_get_user_pseudo(users_list, my_id),message);
+
     // check if /quit
     if(strncmp("/quit", message, 5) == 0)
       break;
@@ -150,10 +156,14 @@ void user_set_pseudo(struct users * users, int user_id, char * pseudo){
   users->pseudo = pseudo;
 }
 
-char * users_get_pseudo_list(struct users* users){
-  char * list_pseudo = "Online users are \n";
+char *users_get_pseudo_list(struct users *users, char *pseudo_list) {
+  pseudo_list = malloc(MSG_MAXLEN*sizeof(char));
+  strcpy(pseudo_list, "\nOnline users are : \n");
   while (users!=NULL) {
-    strcat(list_pseudo, users->pseudo);
+    strcat(pseudo_list, "\t -");
+    strcat(pseudo_list, users->pseudo);
+    strcat(pseudo_list, "\n");
     users = users->next;
   }
+  return pseudo_list;
 }
