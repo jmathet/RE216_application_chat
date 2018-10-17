@@ -164,9 +164,11 @@ char *users_get_pseudo_list(struct users *users) {
   char * pseudo_list = malloc(MSG_MAXLEN*sizeof(char));
   strcpy(pseudo_list, "\nOnline users are : \n");
   while (users!=NULL) {
-    strcat(pseudo_list, "\t -");
-    strcat(pseudo_list, users->pseudo);
-    strcat(pseudo_list, "\n");
+    if (users->user_id!=-1) {
+      strcat(pseudo_list, "\t -");
+      strcat(pseudo_list, users->pseudo);
+      strcat(pseudo_list, "\n");
+    }
     users = users->next;
   }
   return pseudo_list;

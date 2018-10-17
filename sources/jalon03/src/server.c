@@ -11,7 +11,8 @@ int main(int argc, char** argv)
     struct sockaddr_in serv_addr;
     pthread_t thread;
     thread_arg * thread_input; // args for thread creation
-    struct users * first_user = NULL;
+    struct users * first_user = malloc(sizeof(struct users));
+    first_user->user_id = -1;
 
     /* ARGS CHECK */
     if (argc != 2) {
