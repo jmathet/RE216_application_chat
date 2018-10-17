@@ -83,8 +83,11 @@ void *connection_handler(void* thread_input)
     printf("> Sending [%s] : %s\n", users_get_user_pseudo(users_list, my_id),message);
 
     // check if /quit
-    if(strncmp("/quit", message, 5) == 0)
+    if(strncmp("/quit", message, 5) == 0){
+      -- *(thread_args->pt_nb_conn); // decrease number of nb_total_connections
+      users_delete_user(users_list, my_id);
       break;
+    }
   }
 
   printf("=== Connection stopped ===\n");
@@ -121,17 +124,18 @@ struct users* users_add_user(struct users * list, int user_id, char* pseudo, cha
   return list;
 }
 
-struct users* users_delete_user(struct users * list, struct users * user){
-  if (user->user_id == list->user_id) {
+struct users* users_delete_user(struct users * list, int user_id_to_delete){
+  if (user_id_to_delete == list->user_id) {
     return list->next;
   }
-  else if (user->user_id == list->next->user_id){
+  else if (user_id_to_delete == list->next->user_id){
     list->next = NULL;
     return list;
   }
   else{
-    while (list->next!=NULL) {
-      if (user->user_id==list->next->user_id) {
+    while (list->next!=NULL) { // TODO : gérer le cas user_id=-1
+      if (user_id_to_delete==list->next->user_id) {
+
         list->next=list->next->next;
         return list;
       } else {
