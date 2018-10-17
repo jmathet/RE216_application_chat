@@ -72,7 +72,7 @@ void *connection_handler(void* thread_input)
     }
     else if (strncmp("/who", message, strlen("/who")) == 0) {
       char * pseudo_list;
-      pseudo_list = users_get_pseudo_list(users_list, NULL);
+      pseudo_list = users_get_pseudo_list(users_list);
       memset(message, '\0', MSG_MAXLEN);
       strcpy(message, pseudo_list);
       free(pseudo_list);
@@ -156,8 +156,8 @@ void user_set_pseudo(struct users * users, int user_id, char * pseudo){
   users->pseudo = pseudo;
 }
 
-char *users_get_pseudo_list(struct users *users, char *pseudo_list) {
-  pseudo_list = malloc(MSG_MAXLEN*sizeof(char));
+char *users_get_pseudo_list(struct users *users) {
+  char * pseudo_list = malloc(MSG_MAXLEN*sizeof(char));
   strcpy(pseudo_list, "\nOnline users are : \n");
   while (users!=NULL) {
     strcat(pseudo_list, "\t -");

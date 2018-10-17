@@ -38,5 +38,5 @@ struct users* users_add_user(struct users * list, int thread_id, char* pseudo, c
 struct users* users_delete_user(struct users * list, struct users * user);
 char * users_get_user_pseudo(struct users * users, int user_id);
 void user_set_pseudo(struct users * users, int user_id, char * pseudo);
-char *users_get_pseudo_list(struct users *users, char *pseudo_list);
+char *users_get_pseudo_list(struct users *users);
 #endif
