@@ -13,6 +13,7 @@ int main(int argc, char** argv)
     thread_arg * thread_input; // args for thread creation
     struct users * first_user = malloc(sizeof(struct users));
     first_user->user_id = -1;
+    first_user->pseudo = "";
 
     /* ARGS CHECK */
     if (argc != 2) {
@@ -60,6 +61,7 @@ int main(int argc, char** argv)
           thread_input->pt_nb_conn = &nb_total_connections;
           thread_input->users = first_user;
           thread_input->IP_addr = inet_ntoa(serv_addr.sin_addr);
+          thread_input->port_number = ntohs(serv_addr.sin_port);
           // thread creation
           if( pthread_create( &thread, NULL ,  connection_handler , (void*)thread_input) != 0)
           {

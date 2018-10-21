@@ -50,12 +50,23 @@ void *connection_handler(void* thread_input)
   int my_id = thread_args->linked_user_id;
   struct users * users_list = thread_args->users;
   char * IP_addr = thread_args->IP_addr;
+  unsigned short port_number = thread_args->port_number;
+  printf("%d\n", port_number);
 
   ++ *(thread_args->pt_nb_conn); // increase number of nb_total_connections
   printf("=== Connection %i opened ===\n", *(thread_args->pt_nb_conn));
   free(thread_input); // Free thread_input
 
-  users_list = users_add_user(users_list, my_id, "Inconnu", IP_addr, 8080);
+  // TODO : mettre dans une fonction get_date
+  char format[128];
+  time_t temps;
+  struct tm date;
+  time(&temps);
+  date=*localtime(&temps);
+  strftime(format, 128, "%a %x - %X %Z\n", &date);
+
+
+  users_list = users_add_user(users_list, my_id, "Inconnu", IP_addr, port_number, date);
 
   while(1) {
     //read what the client has to say
@@ -64,19 +75,31 @@ void *connection_handler(void* thread_input)
     printf("< Received [%s] : %s\n", users_get_user_pseudo(users_list, my_id), message);
 
     if (strncmp("/nick", message, strlen("/nick")) == 0) {
-      char * pseudo = malloc( (strlen(message)-strlen("/nick ")) * sizeof(char));
-      strncpy(pseudo, message + strlen("/nick ")*sizeof(char), strlen(message)-strlen("/nick ")-1); // -1 to remove '\n'
+      int length_pseudo = strlen(message)-strlen("/nick ")-1; // -1 to remove '\n'
+      char * pseudo = malloc( length_pseudo * sizeof(char));
+      strncpy(pseudo, message + strlen("/nick ")*sizeof(char), length_pseudo);
       user_set_pseudo(users_list, my_id, pseudo);
       memset(message, '\0', MSG_MAXLEN);
       strcpy(message, "Hello ");
       strcat (message, users_get_user_pseudo(users_list, my_id));
     }
-    else if (strncmp("/who", message, strlen("/who")) == 0) {
+    else if (strncmp("/who\n", message, strlen("/who\n")) == 0) {
       char * pseudo_list;
       pseudo_list = users_get_pseudo_list(users_list);
       memset(message, '\0', MSG_MAXLEN);
       strcpy(message, pseudo_list);
       free(pseudo_list);
+    }
+    else if (strncmp("/whos", message, strlen("/whos")) == 0) {
+      // TODO gérer le cas où on fait "/whos" sans donné de pseudo
+      char * info;
+      char * pseudo = malloc( (strlen(message)-strlen("/whos ")) * sizeof(char));
+      strncpy(pseudo, message + strlen("/whos ")*sizeof(char), strlen(message)-strlen("/whos ")-1); // -1 to remove '\n'
+      info = users_get_info_user(users_list, pseudo);
+      memset(message, '\0', MSG_MAXLEN);
+      strcpy(message, info);
+      free(info);
+      free(pseudo);
     }
 
     send_line(thread_fd_connection, message);
@@ -89,6 +112,7 @@ void *connection_handler(void* thread_input)
       users_delete_user(users_list, my_id);
       break;
     }
+    memset(message, '\0', MSG_MAXLEN);
   }
 
   printf("=== Connection stopped ===\n");
@@ -96,7 +120,7 @@ void *connection_handler(void* thread_input)
   return NULL; // a thread should return a pointer
 }
 
-struct users* users_add_user(struct users * list, int user_id, char* pseudo, char* IP_addr, int port){
+struct users* users_add_user(struct users * list, int user_id, char* pseudo, char* IP_addr, unsigned short port, struct tm date){
   // add a new user at the end of the list users
   struct users * new_user = malloc(sizeof( struct users));
 
@@ -108,6 +132,7 @@ struct users* users_add_user(struct users * list, int user_id, char* pseudo, cha
   new_user->pseudo = pseudo;
   new_user->IP_addr = IP_addr;
   new_user->port = port;
+  new_user->date = date;
   new_user->next = NULL;
 
   if (list == NULL) {
@@ -174,4 +199,19 @@ char *users_get_pseudo_list(struct users *users) {
     users = users->next;
   }
   return pseudo_list;
+}
+ //User1 connected since 2014/09/29@19:23 with IP address 192.168.3.165 and port number 52322
+char *users_get_info_user(struct users * users, char *pseudo){
+  char * info = malloc(MSG_MAXLEN*sizeof(char));
+  while (strcmp(users->pseudo, pseudo) && users->user_id!=-1) {
+    users = users->next;
+  }
+  if (users==NULL) {
+    sprintf(info, "No user found !");
+  }
+  else {
+    sprintf(info, "%s conncted since %s with the IP address %s and port number %d.\n", pseudo, (char*)&users->date, users->IP_addr, users->port);
+    // le cast pour la date ne fonctione pas
+  }
+  return info;
 }
