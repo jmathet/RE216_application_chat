@@ -49,12 +49,13 @@ void *connection_handler(void* thread_input)
   int thread_fd_connection = thread_args->thread_fd_connection;
   int my_id = thread_args->linked_user_id;
   struct users * users_list = thread_args->users;
+  char * IP_addr = thread_args->IP_addr;
 
   ++ *(thread_args->pt_nb_conn); // increase number of nb_total_connections
   printf("=== Connection %i opened ===\n", *(thread_args->pt_nb_conn));
   free(thread_input); // Free thread_input
 
-  users_list = users_add_user(users_list, my_id, "Inconnu", "127.0.0.1", 8080);
+  users_list = users_add_user(users_list, my_id, "Inconnu", IP_addr, 8080);
 
   while(1) {
     //read what the client has to say
@@ -154,6 +155,7 @@ char * users_get_user_pseudo(struct users * users, int user_id){
 }
 
 void user_set_pseudo(struct users * users, int user_id, char * pseudo){
+  // TODO : check if the pseudo is not already used
   while (users->user_id!=user_id) {
     users = users->next;
   }

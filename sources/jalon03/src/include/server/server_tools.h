@@ -27,6 +27,7 @@ typedef struct thread_arg {
   int linked_user_id;
   int * pt_nb_conn;
   struct users * users;
+  char * IP_addr;
 } thread_arg;
 
 void init_serv_addr(struct sockaddr_in *serv_addr, int port);

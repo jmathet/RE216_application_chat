@@ -59,7 +59,7 @@ int main(int argc, char** argv)
           thread_input->linked_user_id = nb_total_connections + 1;
           thread_input->pt_nb_conn = &nb_total_connections;
           thread_input->users = first_user;
-
+          thread_input->IP_addr = inet_ntoa(serv_addr.sin_addr);
           // thread creation
           if( pthread_create( &thread, NULL ,  connection_handler , (void*)thread_input) != 0)
           {
