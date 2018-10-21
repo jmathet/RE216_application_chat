@@ -11,7 +11,8 @@ int main(int argc, char** argv)
     struct sockaddr_in serv_addr;
     pthread_t thread;
     thread_arg * thread_input; // args for thread creation
-    struct users * first_user = NULL;
+    struct users * first_user = malloc(sizeof(struct users));
+    first_user->user_id = -1;
 
     /* ARGS CHECK */
     if (argc != 2) {
@@ -58,7 +59,7 @@ int main(int argc, char** argv)
           thread_input->linked_user_id = nb_total_connections + 1;
           thread_input->pt_nb_conn = &nb_total_connections;
           thread_input->users = first_user;
-
+          thread_input->IP_addr = inet_ntoa(serv_addr.sin_addr);
           // thread creation
           if( pthread_create( &thread, NULL ,  connection_handler , (void*)thread_input) != 0)
           {
