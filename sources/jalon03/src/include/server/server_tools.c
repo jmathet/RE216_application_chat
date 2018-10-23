@@ -151,22 +151,12 @@ struct users* users_add_user(struct users * list, int user_id, char* pseudo, cha
 }
 
 struct users* users_delete_user(struct users * list, int user_id_to_delete){
-  if (user_id_to_delete == list->user_id) {
-    return list->next;
-  }
-  else if (user_id_to_delete == list->next->user_id){
-    list->next = NULL;
-    return list;
-  }
-  else{
-    while (list->next!=NULL) { // TODO : gérer le cas user_id=-1
-      if (user_id_to_delete==list->next->user_id) {
-
-        list->next=list->next->next;
-        return list;
-      } else {
-        list=list->next;
-      }
+  while (list->next!=NULL) {
+    if (user_id_to_delete==list->next->user_id) {
+      list->next=list->next->next;
+      return list;
+    } else {
+      list=list->next;
     }
   }
   return list;
