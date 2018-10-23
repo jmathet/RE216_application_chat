@@ -20,7 +20,7 @@ struct users{
   char *pseudo;
   char *IP_addr;
   unsigned short port;
-  struct tm date;
+  char * date;
   struct users* next;
 };
 
@@ -38,7 +38,7 @@ void do_bind(int socket, struct sockaddr_in addr_in);
 void do_listen(int socket, int nb_max);
 int do_accept(int socket, struct sockaddr *addr, socklen_t* addrlen);
 void *connection_handler(void* sock);
-struct users* users_add_user(struct users * list, int user_id, char* pseudo, char* IP_addr, unsigned short port, struct tm date);
+struct users* users_add_user(struct users * list, int user_id, char* pseudo, char* IP_addr, unsigned short port, char* date);
 struct users* users_delete_user(struct users * list, int user_id_to_delete);
 char * users_get_user_pseudo(struct users * users, int user_id);
 void user_set_pseudo(struct users * users, int user_id, char * pseudo);

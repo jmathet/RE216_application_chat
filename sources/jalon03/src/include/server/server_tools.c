@@ -58,15 +58,17 @@ void *connection_handler(void* thread_input)
   free(thread_input); // Free thread_input
 
   // TODO : mettre dans une fonction get_date
-  char format[128];
+  /*char format[128];
   time_t temps;
   struct tm date;
   time(&temps);
   date=*localtime(&temps);
   strftime(format, 128, "%a %x - %X %Z\n", &date);
+*/
+  time_t mytime;
+  mytime = time(NULL);
 
-
-  users_list = users_add_user(users_list, my_id, "Inconnu", IP_addr, port_number, date);
+  users_list = users_add_user(users_list, my_id, "Inconnu", IP_addr, port_number, ctime(&mytime));
 
   while(1) {
     //read what the client has to say
@@ -90,7 +92,7 @@ void *connection_handler(void* thread_input)
       strcpy(message, pseudo_list);
       free(pseudo_list);
     }
-    else if (strncmp("/whos", message, strlen("/whos")) == 0) {
+    else if (strncmp("/whos ", message, strlen("/whos ")) == 0) {
       // TODO gérer le cas où on fait "/whos" sans donné de pseudo
       char * info;
       char * pseudo = malloc( (strlen(message)-strlen("/whos ")) * sizeof(char));
@@ -120,7 +122,7 @@ void *connection_handler(void* thread_input)
   return NULL; // a thread should return a pointer
 }
 
-struct users* users_add_user(struct users * list, int user_id, char* pseudo, char* IP_addr, unsigned short port, struct tm date){
+struct users* users_add_user(struct users * list, int user_id, char* pseudo, char* IP_addr, unsigned short port, char * date){
   // add a new user at the end of the list users
   struct users * new_user = malloc(sizeof( struct users));
 
@@ -193,14 +195,14 @@ char *users_get_pseudo_list(struct users *users) {
  //User1 connected since 2014/09/29@19:23 with IP address 192.168.3.165 and port number 52322
 char *users_get_info_user(struct users * users, char *pseudo){
   char * info = malloc(MSG_MAXLEN*sizeof(char));
-  while (strcmp(users->pseudo, pseudo) && users->user_id!=-1) {
+  while (strcmp(users->pseudo, pseudo)!=0 && users!=NULL) {
     users = users->next;
   }
   if (users==NULL) {
     sprintf(info, "No user found !");
   }
   else {
-    sprintf(info, "%s conncted since %s with the IP address %s and port number %d.\n", pseudo, (char*)&users->date, users->IP_addr, users->port);
+    sprintf(info, "%s conncted since %s with the IP address %s and port number %d.\n", pseudo, users->date, users->IP_addr, users->port);
     // le cast pour la date ne fonctione pas
   }
   return info;
