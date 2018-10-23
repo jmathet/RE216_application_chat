@@ -20,3 +20,10 @@ void init_client_addr(struct sockaddr_in *serv_addr, char *ip, int port)
    if (connect_result == -1)
      error("connect");
  }
+
+ int is_pseudo_correct(char * pseudo) {
+  if (strlen(pseudo) > 1 && *pseudo != ' ')
+    return 1;
+  else
+    return 0;
+}

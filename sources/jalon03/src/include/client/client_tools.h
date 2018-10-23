@@ -12,5 +12,6 @@
 
 void init_client_addr(struct sockaddr_in *serv_addr, char *ip, int port);
 void do_connect(int sock, struct sockaddr_in host_addr);
+int is_pseudo_correct(char * pseudo);
 
 #endif
