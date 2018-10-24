@@ -51,20 +51,13 @@ void *connection_handler(void* thread_input)
   struct users * users_list = thread_args->users;
   char * IP_addr = thread_args->IP_addr;
   unsigned short port_number = thread_args->port_number;
-  printf("%d\n", port_number);
 
   ++ *(thread_args->pt_nb_conn); // increase number of nb_total_connections
   printf("=== Connection %i opened ===\n", *(thread_args->pt_nb_conn));
   free(thread_input); // Free thread_input
 
   // TODO : mettre dans une fonction get_date
-  /*char format[128];
-  time_t temps;
-  struct tm date;
-  time(&temps);
-  date=*localtime(&temps);
-  strftime(format, 128, "%a %x - %X %Z\n", &date);
-*/
+
   time_t mytime;
   mytime = time(NULL);
 
@@ -153,6 +146,7 @@ struct users* users_add_user(struct users * list, int user_id, char* pseudo, cha
 }
 
 struct users* users_delete_user(struct users * list, int user_id_to_delete){
+  /* Delete the user corresponding to the user_id_to_delete and return the new list */
   while (list->next!=NULL) {
     if (user_id_to_delete==list->next->user_id) {
       list->next=list->next->next;
@@ -165,6 +159,7 @@ struct users* users_delete_user(struct users * list, int user_id_to_delete){
 }
 
 char * users_get_user_pseudo(struct users * users, int user_id){
+  /* Return the pseudo of the user corresponding to the user_id */
   while (users->user_id!=user_id) {
     users = users->next;
   }
@@ -172,6 +167,7 @@ char * users_get_user_pseudo(struct users * users, int user_id){
 }
 
 void user_set_pseudo(struct users * users, int user_id, char * pseudo){
+  /* Set the pseudo of the user corresponding to the user_id */
   // TODO : check if the pseudo is not already used
   while (users->user_id!=user_id) {
     users = users->next;
@@ -180,6 +176,7 @@ void user_set_pseudo(struct users * users, int user_id, char * pseudo){
 }
 
 char *users_get_pseudo_list(struct users *users) {
+  /* Return the list of pseudo */
   char * pseudo_list = malloc(MSG_MAXLEN*sizeof(char));
   strcpy(pseudo_list, "\nOnline users are : \n");
   while (users!=NULL) {
@@ -192,8 +189,9 @@ char *users_get_pseudo_list(struct users *users) {
   }
   return pseudo_list;
 }
- //User1 connected since 2014/09/29@19:23 with IP address 192.168.3.165 and port number 52322
+
 char *users_get_info_user(struct users * users, char *pseudo){
+  /* Return information of the corresponding user */
   char * info = malloc(MSG_MAXLEN*sizeof(char));
   while (strcmp(users->pseudo, pseudo)!=0 && users!=NULL) {
     users = users->next;
@@ -203,7 +201,6 @@ char *users_get_info_user(struct users * users, char *pseudo){
   }
   else {
     sprintf(info, "%s conncted since %s with the IP address %s and port number %d.\n", pseudo, users->date, users->IP_addr, users->port);
-    // le cast pour la date ne fonctione pas
   }
   return info;
 }
