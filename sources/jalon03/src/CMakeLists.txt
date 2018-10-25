@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8.3)
 
-project(RE216_JALON03)
+project(RE216_JALON04)
 add_subdirectory(include)
 
 
@@ -13,7 +13,7 @@ SET(SRC_CLIENT
     include/client/client_tools.h
     include/client/client_tools.c
 	)
-add_executable(RE216_JALON03_CLIENT ${SRC_CLIENT})
+add_executable(RE216_JALON04_CLIENT ${SRC_CLIENT})
 
 
 #add here source files you need to compile and link to the server app
@@ -25,6 +25,6 @@ SET(SRC_SERVER
     include/server/server_tools.h
     include/server/server_tools.c
 	)
-add_executable(RE216_JALON03_SERVER  ${SRC_SERVER})
+add_executable(RE216_JALON04_SERVER  ${SRC_SERVER})
 
-target_link_libraries (RE216_JALON03_SERVER ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries (RE216_JALON04_SERVER ${CMAKE_THREAD_LIBS_INIT})
