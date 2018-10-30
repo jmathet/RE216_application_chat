@@ -31,4 +31,5 @@ void send_int(int file_des, int to_send);
 int read_int(int file_des);
 void read_line(int file_des, void *str);
 void send_line(int file_des, const void *str);
+void string_strip(char *string);
 #endif

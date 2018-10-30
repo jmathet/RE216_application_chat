@@ -4,7 +4,7 @@ void init_serv_addr(struct sockaddr_in *serv_addr, int port)
  {
    /* Modify specified sockaddr_in for the server side with specified port */
    // clean structure
-   memset(serv_addr, '\0', sizeof(*serv_addr));
+   memset(serv_addr, 0, sizeof(*serv_addr));
    serv_addr->sin_family = AF_INET; // IP V4
    serv_addr->sin_port = htons(port); // specified port in args
    serv_addr->sin_addr.s_addr = INADDR_ANY;
@@ -65,23 +65,24 @@ void *connection_handler(void* thread_input)
 
   while(1) {
     //read what the client has to say
-    memset(message, '\0', MSG_MAXLEN);
+    memset(message, 0, MSG_MAXLEN);
     read_line(thread_fd_connection, message);
     printf("< Received [%s] : %s\n", users_get_user_pseudo(users_list, my_id), message);
 
     if (strncmp("/nick", message, strlen("/nick")) == 0) {
-      int length_pseudo = strlen(message)-strlen("/nick ")-1; // -1 to remove '\n'
-      char * pseudo = malloc( length_pseudo * sizeof(char));
-      strncpy(pseudo, message + strlen("/nick ")*sizeof(char), length_pseudo);
+      int pseudo_length = strlen(message) - strlen("/nick ") - 1; // \n occupies 1 char
+      char pseudo[pseudo_length];
+      strcpy(pseudo, message+strlen("/nick "));
+      string_strip(pseudo);
       user_set_pseudo(users_list, my_id, pseudo);
-      memset(message, '\0', MSG_MAXLEN);
+      memset(message, 0, MSG_MAXLEN);
       strcpy(message, "Hello ");
       strcat (message, users_get_user_pseudo(users_list, my_id));
     }
     else if (strncmp("/who\n", message, strlen("/who\n")) == 0) {
       char * pseudo_list;
       pseudo_list = users_get_pseudo_list(users_list);
-      memset(message, '\0', MSG_MAXLEN);
+      memset(message, 0, MSG_MAXLEN);
       strcpy(message, pseudo_list);
       free(pseudo_list);
     }
@@ -91,7 +92,7 @@ void *connection_handler(void* thread_input)
       char * pseudo = malloc( (strlen(message)-strlen("/whos ")) * sizeof(char));
       strncpy(pseudo, message + strlen("/whos ")*sizeof(char), strlen(message)-strlen("/whos ")-1); // -1 to remove '\n'
       info = users_get_info_user(users_list, pseudo);
-      memset(message, '\0', MSG_MAXLEN);
+      memset(message, 0, MSG_MAXLEN);
       strcpy(message, info);
       free(info);
       free(pseudo);
@@ -107,7 +108,7 @@ void *connection_handler(void* thread_input)
       users_delete_user(users_list, my_id);
       break;
     }
-    memset(message, '\0', MSG_MAXLEN);
+    memset(message, 0, MSG_MAXLEN);
   }
 
   printf("=== Connection stopped ===\n");

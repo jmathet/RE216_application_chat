@@ -106,3 +106,9 @@ void send_line(int file_des, const void *str)
     }
   } while(left > 0);
 }
+
+void string_strip(char *string)
+{
+  while(*string && *string != '\n' && *string != '\r') string++;
+  *string = 0;
+}

@@ -39,14 +39,14 @@ int main(int argc,char** argv)
       do {
         printf("Please identify yourself by using '/nick <Your Name>' : ");
         //get user input
-        memset(message, '\0', MSG_MAXLEN);
+        memset(message, 0, MSG_MAXLEN);
         fgets(message, MSG_MAXLEN-1, stdin);
 
         if(strncmp("/nick ", message, 6) == 0 && is_pseudo_correct(message+6) == 1) {
           printf("> Sending : %s\n", message);
           send_line(sock, message);
           // receive answer
-          memset(reply, '\0', MSG_MAXLEN);
+          memset(reply, 0, MSG_MAXLEN);
           read_line(sock, reply);
           printf("< Answer received : %s\n", reply);
           status = CLIENT_LOGGED;
@@ -56,7 +56,7 @@ int main(int argc,char** argv)
       while(status != CLIENT_QUITTING) {
         printf("Message: ");
         //get user input
-        memset(message, '\0', MSG_MAXLEN);
+        memset(message, 0, MSG_MAXLEN);
         fgets(message, MSG_MAXLEN-1, stdin);
 
         // send it to server
@@ -64,7 +64,7 @@ int main(int argc,char** argv)
           send_line(sock, message);
 
         // receive answer
-        memset(reply, '\0', MSG_MAXLEN);
+        memset(reply, 0, MSG_MAXLEN);
           read_line(sock, reply);
         printf("< Answer received : %s\n", reply);
 
@@ -75,8 +75,8 @@ int main(int argc,char** argv)
         }
 
         // clean message and reply
-        memset(message, '\0', MSG_MAXLEN);
-        memset(reply, '\0', MSG_MAXLEN);
+        memset(message, 0, MSG_MAXLEN);
+        memset(reply, 0, MSG_MAXLEN);
       }
     }
 
