@@ -1,12 +1,26 @@
+#include <pthread.h>
 #include "include/client/client_tools.h"
 #include "include/general_tools.h"
 
 int main(int argc,char** argv)
 {
     /* INITS */
-    int status, host_port, sock;
+    volatile int status;
+    int host_port;
+    int sock;
     struct sockaddr_in host_addr;
-    char host_ip[10], message[MSG_MAXLEN], reply[MSG_MAXLEN];
+    char host_ip[10];
+    char message[MSG_MAXLEN];
+    pthread_t reception_thread;
+    pthread_t communication_thread;
+    reception_arg * reception_input;
+    communication_arg * communication_input;
+    pthread_mutex_t sock_mutex = PTHREAD_MUTEX_INITIALIZER;
+    pthread_mutex_t status_mutex = PTHREAD_MUTEX_INITIALIZER;
+
+    /* MALLOC */
+    reception_input = malloc(sizeof(reception_arg));
+    communication_input = malloc(sizeof(communication_arg));
 
     /* ARGS CHECK */
     if (argc != 3)
@@ -21,7 +35,6 @@ int main(int argc,char** argv)
       fprintf(stderr, "Please use a non reserved port number.");
       exit(EXIT_FAILURE);
     }
-
 
     /* SOCKET SET-UP */
     init_client_addr(&host_addr, host_ip, host_port);
@@ -46,14 +59,34 @@ int main(int argc,char** argv)
           printf("> Sending : %s\n", message);
           send_line(sock, message);
           // receive answer
-          memset(reply, 0, MSG_MAXLEN);
-          read_line(sock, reply);
-          printf("< Answer received : %s\n", reply);
-          status = CLIENT_LOGGED;
+          memset(message, 0, MSG_MAXLEN);
+          read_line(sock, message);
+          printf("< Answer received : %s\n", message);
+          status = CLIENT_RUNNING;
         }
-      } while(status != CLIENT_LOGGED);
+      } while(status != CLIENT_RUNNING);
 
-      while(status != CLIENT_QUITTING) {
+      /* RECEPTION SOCK */
+      reception_input->sock = sock;
+      reception_input->status = status;
+      reception_input->sock_mutex = sock_mutex;
+      if(0 != pthread_create(&reception_thread, NULL, reception_handler, reception_input))
+        error("pthread_create");
+
+      /* COMMUNICATION THREAD */
+      communication_input->sock = sock;
+      communication_input->status = status;
+      communication_input->sock_mutex = sock_mutex;
+      if(0 != pthread_create(&communication_thread, NULL, communication_handler, communication_input))
+        error("pthread_create");
+
+      /* THREADS JOIN */
+      if(0 != pthread_join(reception_thread, NULL))
+        error("pthread_join");
+      if(0 != pthread_join(communication_thread, NULL))
+        error("pthread_join");
+      printf("=== Quiting. ===\n");
+      /* while(status != CLIENT_QUITTING) {
         printf("Message: ");
         //get user input
         memset(message, 0, MSG_MAXLEN);
@@ -77,9 +110,13 @@ int main(int argc,char** argv)
         // clean message and reply
         memset(message, 0, MSG_MAXLEN);
         memset(reply, 0, MSG_MAXLEN);
-      }
+      } */
     }
 
+    /* CLEAN */
+    free(reception_input);
+    free(communication_input);
     close(sock);
+
     return 0;
 }

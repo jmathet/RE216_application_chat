@@ -27,3 +27,44 @@ void init_client_addr(struct sockaddr_in *serv_addr, char *ip, int port)
   else
     return 0;
 }
+
+void * reception_handler(void * arg) {
+  /* INITS */
+  reception_arg * input = (reception_arg *) arg;
+  char message[MSG_MAXLEN];
+
+  /* RECEPTION AND DISPLAY OF MESSAGES */
+  while(input->status != CLIENT_QUITTING) {
+    pthread_mutex_lock(&input->sock_mutex);
+    read_line(input->sock, message);
+    printf("< Answer received : %s\n", message);
+    pthread_mutex_unlock(&input->sock_mutex);
+
+    // check if /quit
+    if(strncmp("/quit", message, 5) == 0)
+      input->status = CLIENT_QUITTING;
+  }
+  return NULL;
+}
+
+void * communication_handler(void * arg) {
+  /* INITS */
+  communication_arg * input = (communication_arg *) arg;
+  char message[MSG_MAXLEN];
+  strcpy(message, "/quit\r");
+
+  /* EMISSION OF MESSAGES */
+  while(input->status != CLIENT_QUITTING) {
+    printf("Message: ");
+    fgets(message, MSG_MAXLEN-1, stdin);
+    printf("> Sending : %s\n", message);
+    pthread_mutex_lock(&input->sock_mutex);
+    send_line(input->sock, message);
+    pthread_mutex_unlock(&input->sock_mutex);
+
+    // check if /quit
+    if(strncmp("/quit", message, 5) == 0)
+      input->status = CLIENT_QUITTING;
+  }
+  return NULL;
+}
