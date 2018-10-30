@@ -35,9 +35,10 @@ void * reception_handler(void * arg) {
 
   /* RECEPTION AND DISPLAY OF MESSAGES */
   while(input->status != CLIENT_QUITTING) {
+    memset(message, 0, MSG_MAXLEN);
     pthread_mutex_lock(&input->sock_mutex);
     read_line(input->sock, message);
-    printf("< Answer received : %s\n", message);
+    printf("\n< Answer received : %s\n", message);
     pthread_mutex_unlock(&input->sock_mutex);
 
     // check if /quit
@@ -51,11 +52,10 @@ void * communication_handler(void * arg) {
   /* INITS */
   communication_arg * input = (communication_arg *) arg;
   char message[MSG_MAXLEN];
-  strcpy(message, "/quit\r");
 
   /* EMISSION OF MESSAGES */
   while(input->status != CLIENT_QUITTING) {
-    printf("Message: ");
+    memset(message, 0, MSG_MAXLEN);
     fgets(message, MSG_MAXLEN-1, stdin);
     printf("> Sending : %s\n", message);
     pthread_mutex_lock(&input->sock_mutex);
