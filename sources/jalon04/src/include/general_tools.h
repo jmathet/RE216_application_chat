@@ -61,4 +61,8 @@ void send_line(int file_des, const void *str);
  * Usage : function_number = parser(message); */
 int parser(char * message);
 
+/* Remove \n first character from the string by cuting it earlier with an '\0'
+ * Usage : remove_line_breaks(string); (modifying pointer) */
+void remove_line_breaks(char * string);
+
 #endif

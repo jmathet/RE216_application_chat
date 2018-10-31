@@ -51,6 +51,7 @@ int main(int argc, char** argv)
     while(status != SERVER_QUITTING)
     {
         // receiving new connections from clients
+        // TODO manage a non blocking mode for status consideration
         socklen_t addrlen = sizeof(struct sockaddr);
         connection_fd = do_accept(sock, (struct sockaddr*)&client_addr, &addrlen);
 
