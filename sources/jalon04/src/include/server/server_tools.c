@@ -73,7 +73,6 @@ void *connection_handler(void* thread_input)
       int pseudo_length = strlen(message) - strlen("/nick ") - 1; // \n occupies 1 char
       char pseudo[pseudo_length];
       strcpy(pseudo, message+strlen("/nick "));
-      string_strip(pseudo);
       user_set_pseudo(users_list, my_id, pseudo);
       memset(message, 0, MSG_MAXLEN);
       strcpy(message, "Hello ");
