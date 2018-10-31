@@ -41,7 +41,7 @@ int main(int argc,char** argv)
     sock = do_socket();
     do_connect(sock, host_addr);
 
-    /* CHAT CLIENT */
+    /* AUTHENTIFICATION */
     if(read_int(sock) == SERVER_FULL) {
       printf("Too many users connected to the server. Connection closed.\n");
       status=CLIENT_QUITTING;
@@ -66,7 +66,7 @@ int main(int argc,char** argv)
         }
       } while(status != CLIENT_RUNNING);
 
-      /* RECEPTION SOCK */
+      /* RECEPTION THREAD */
       reception_input->sock = sock;
       reception_input->status = status;
       reception_input->sock_mutex = sock_mutex;
@@ -86,34 +86,9 @@ int main(int argc,char** argv)
       if(0 != pthread_join(communication_thread, NULL))
         error("pthread_join");
       printf("=== Quiting. ===\n");
-      /* while(status != CLIENT_QUITTING) {
-        printf("Message: ");
-        //get user input
-        memset(message, 0, MSG_MAXLEN);
-        fgets(message, MSG_MAXLEN-1, stdin);
-
-        // send it to server
-        printf("> Sending : %s\n", message);
-          send_line(sock, message);
-
-        // receive answer
-        memset(reply, 0, MSG_MAXLEN);
-          read_line(sock, reply);
-        printf("< Answer received : %s\n", reply);
-
-        // check if /quit
-        if(strncmp("/quit", message, 5) == 0) {
-          printf("=== Quiting. ===\n");
-          status = CLIENT_QUITTING;
-        }
-
-        // clean message and reply
-        memset(message, 0, MSG_MAXLEN);
-        memset(reply, 0, MSG_MAXLEN);
-      } */
     }
 
-    /* CLEAN */
+    /* CLEAN UP */
     free(reception_input);
     free(communication_input);
     close(sock);
