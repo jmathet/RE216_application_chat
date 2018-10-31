@@ -70,13 +70,13 @@ void *connection_handler(void* thread_input)
     if(message[0] == '/') { // if a command is sent
       switch (parser(message)) {
         case FUNC_NICK:
-          remove_line_breaks(message);
           user_set_pseudo(thread_args->users_list, thread_args->user_id, message+strlen("/nick ")); // offset to remove command from temp buffer
           break;
 
         case FUNC_WHO:
           memset(message, 0, MSG_MAXLEN);
           users_get_pseudo_display(thread_args->users_list, message);
+          send_line(thread_args->connection_fd, message);
           break;
 
         case FUNC_WHOIS:
@@ -102,14 +102,9 @@ void *connection_handler(void* thread_input)
         default:
           printf("Invalid command.");
           break;
-      } // END switch
-    } // END if command sent
-
-    /* REPEATER MODE */
-    send_line(thread_args->connection_fd, message);
-    if(client_status != CLIENT_QUITTING)
-      printf("> Sending [%s] : %s\n", users_get_user_pseudo(thread_args->users_list, thread_args->user_id),message);
-    }
+        } // END switch
+      } // END if command sent
+    } // END while
 
   printf("=== Connection from user %i stopped ===\n", thread_args->user_id);
 

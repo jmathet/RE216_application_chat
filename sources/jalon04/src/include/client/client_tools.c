@@ -29,9 +29,6 @@ void init_client_addr(struct sockaddr_in *serv_addr, char *ip, int port) {
      if(parser(message) == FUNC_NICK && is_pseudo_correct(message+6)) {
        printf("> Sending : %s\n", message);
        send_line(sock, message);
-       memset(message, 0, MSG_MAXLEN);
-       read_line(sock, message);
-       printf("< Answer received : %s\n", message);
        finished=1;
      }
    } while(!finished);
