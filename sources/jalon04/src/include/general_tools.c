@@ -2,12 +2,14 @@
 
 void error(const char *msg)
 {
+  /* Interrupt program because of an error */
     perror(msg);
     exit(EXIT_FAILURE);
 }
 
 int do_socket()
 {
+  /* Create a socket and return the associated file descriptor */
   int file_des;
   do {
     file_des = socket(AF_INET, SOCK_STREAM, 0);
@@ -20,7 +22,9 @@ int do_socket()
 }
 
 void send_int(int file_des, int to_send) {
-  // Inspired by garlix's answer from https://stackoverflow.com/questions/9140409/transfer-integer-over-a-socket-in-c
+  /* Send an integer into the socket, with conversion to int32_t for cross-compatibility */
+  /* Thanks to garlix's answer from https://stackoverflow.com/questions/9140409/transfer-integer-over-a-socket-in-c */
+
   int32_t converted_to_send = (int)to_send; // convert the length in a generic type independant from infrastucture for emission over socket
   char * data = (char *)&converted_to_send; // pointer on the remaining converted data to send
   int left = sizeof(converted_to_send);
@@ -38,7 +42,9 @@ void send_int(int file_des, int to_send) {
 }
 
 int read_int(int file_des) {
-  // Inspired by garlix's answer from https://stackoverflow.com/questions/9140409/transfer-integer-over-a-socket-in-c
+  /* Read an integer from the socket, with conversion to int32_t for cross-compatibility */
+  /* Thanks to garlix's answer from https://stackoverflow.com/questions/9140409/transfer-integer-over-a-socket-in-c */
+
   int32_t received; // received raw data
   int left=sizeof(received);
   char *data_received = (char *)&received; // pointer on raw data
@@ -59,6 +65,9 @@ int read_int(int file_des) {
 
 void read_line(int file_des, void *str)
 {
+  /* Read a line with length detection (pseudo-protocol) */
+  /* Thanks to garlix's answer from https://stackoverflow.com/questions/9140409/transfer-integer-over-a-socket-in-c */
+
   // Reading the length of the string to receive
   int left = read_int(file_des);
 
@@ -77,6 +86,9 @@ void read_line(int file_des, void *str)
 
 void send_line(int file_des, const void *str)
 {
+  /* Sending a line with length-detection (pseudo-protocol) */
+  /* Thanks to garlix's answer from https://stackoverflow.com/questions/9140409/transfer-integer-over-a-socket-in-c */
+
   // Sending the length of the string
   int str_length = strlen(str); // getting the legnth
   send_int(file_des, str_length);
@@ -95,15 +107,8 @@ void send_line(int file_des, const void *str)
   } while(left > 0);
 }
 
-int parser(char * message) {
-  if(0 == strncmp("/quit ", message, strlen("/quit ")))
-    return FUNC_QUIT;
-  else if(0 == strncmp("/nick ", message, strlen("/nick ")))
-    return FUNC_NICK;
-  else if(0 == strncmp("/who ", message, strlen("/who ")))
-    return FUNC_WHO;
-  else if(0 == strncmp("/whois ", message, strlen("/whois ")))
-    return FUNC_WHOIS;
-  else
-    return FUNC_UNDEFINED;
+void string_strip(char *string)
+{
+  while(*string && *string != '\n' && *string != '\r') string++;
+  *string = 0;
 }

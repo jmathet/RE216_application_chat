@@ -1,3 +1,4 @@
+#include <pthread.h>
 #include "include/client/client_tools.h"
 #include "include/general_tools.h"
 
@@ -15,6 +16,7 @@ int main(int argc,char** argv)
     reception_arg * reception_input;
     communication_arg * communication_input;
     pthread_mutex_t sock_mutex = PTHREAD_MUTEX_INITIALIZER;
+    pthread_mutex_t status_mutex = PTHREAD_MUTEX_INITIALIZER;
 
     /* MALLOC */
     reception_input = malloc(sizeof(reception_arg));
@@ -39,16 +41,30 @@ int main(int argc,char** argv)
     sock = do_socket();
     do_connect(sock, host_addr);
 
-    /* CHECK SERVER CAPACITY */
+    /* AUTHENTIFICATION */
     if(read_int(sock) == SERVER_FULL) {
       printf("Too many users connected to the server. Connection closed.\n");
-      status = CLIENT_QUITTING;
+      status=CLIENT_QUITTING;
     }
     else {
-      /* AUTHENTIFICATION */
+      // Ensure client authentification
       status=CLIENT_NOT_LOGGED;
-      auth_user(sock);
-      status=CLIENT_RUNNING;
+      do {
+        printf("Please identify yourself by using '/nick <Your Name>' : ");
+        //get user input
+        memset(message, 0, MSG_MAXLEN);
+        fgets(message, MSG_MAXLEN-1, stdin);
+
+        if(strncmp("/nick ", message, 6) == 0 && is_pseudo_correct(message+6) == 1) {
+          printf("> Sending : %s\n", message);
+          send_line(sock, message);
+          // receive answer
+          memset(message, 0, MSG_MAXLEN);
+          read_line(sock, message);
+          printf("< Answer received : %s\n", message);
+          status = CLIENT_RUNNING;
+        }
+      } while(status != CLIENT_RUNNING);
 
       /* RECEPTION THREAD */
       reception_input->sock = sock;
