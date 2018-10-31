@@ -75,12 +75,8 @@ void *connection_handler(void* thread_input)
           break;
 
         case FUNC_WHO:
-          printf("WHO");
-          char * pseudo_list;
-          pseudo_list = users_get_pseudo_list(thread_args->users_list);
           memset(message, 0, MSG_MAXLEN);
-          strcpy(message, pseudo_list);
-          free(pseudo_list);
+          users_get_pseudo_display(thread_args->users_list, message);
           break;
 
         case FUNC_WHOIS:
@@ -181,7 +177,6 @@ char * users_get_user_pseudo(struct users * users, int user_id){
 }
 
 void user_set_pseudo(struct users * users, int user_id, char * pseudo){
-  /* Set the pseudo of the user corresponding to the id */
   // TODO : check if the pseudo is not already used
   while (users->id!=user_id) {
     users = users->next;
@@ -190,9 +185,7 @@ void user_set_pseudo(struct users * users, int user_id, char * pseudo){
   strcpy(users->pseudo, pseudo);
 }
 
-char *users_get_pseudo_list(struct users *users) {
-  /* Return the list of pseudo */
-  char * pseudo_list = malloc(MSG_MAXLEN*sizeof(char));
+void users_get_pseudo_display(struct users *users, char *pseudo_list) {
   strcpy(pseudo_list, "\nOnline users are : \n");
   while (users!=NULL) {
     if (users->id!=0) {
@@ -202,7 +195,6 @@ char *users_get_pseudo_list(struct users *users) {
     }
     users = users->next;
   }
-  return pseudo_list;
 }
 
 char *users_get_info_user(struct users * users, char *pseudo){

@@ -61,7 +61,10 @@ void users_delete_user(struct users * list, int user_id_to_delete);
 /* Return the pseudo (char *) of the given user id. The user must exist. */
 char * users_get_user_pseudo(struct users * users, int user_id);
 
+/* Set the pseudo of the user corresponding to the id */
 void user_set_pseudo(struct users * users, int user_id, char * pseudo);
-char *users_get_pseudo_list(struct users *users);
+
+/* Return the list of connected users to the server */
+void users_get_pseudo_display(struct users *users, char *pseudo_list);
 char *users_get_info_user(struct users * users, char *pseudo);
 #endif
