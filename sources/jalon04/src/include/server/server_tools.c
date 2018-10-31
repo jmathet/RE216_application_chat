@@ -76,13 +76,11 @@ void *connection_handler(void* thread_input)
 
         case FUNC_WHO:
           printf("WHO");
-          /*
-                 char * pseudo_list;
-      pseudo_list = users_get_pseudo_list(thread_args->users_list);
-      memset(message, 0, MSG_MAXLEN);
-      strcpy(message, pseudo_list);
-      free(pseudo_list);
-           */
+          char * pseudo_list;
+          pseudo_list = users_get_pseudo_list(thread_args->users_list);
+          memset(message, 0, MSG_MAXLEN);
+          strcpy(message, pseudo_list);
+          free(pseudo_list);
           break;
 
         case FUNC_WHOIS:
@@ -197,7 +195,7 @@ char *users_get_pseudo_list(struct users *users) {
   char * pseudo_list = malloc(MSG_MAXLEN*sizeof(char));
   strcpy(pseudo_list, "\nOnline users are : \n");
   while (users!=NULL) {
-    if (users->id!=-1) {
+    if (users->id!=0) {
       strcat(pseudo_list, "\t -");
       strcat(pseudo_list, users->pseudo);
       strcat(pseudo_list, "\n");

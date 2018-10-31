@@ -55,7 +55,7 @@ void duplicate_threads_args(thread_arg * source_args, thread_arg * dest_args);
 /* Add an user at to the list of ALREADY EXISTING users (at least system user). Users is added by the right side. */
 void users_add_user(struct users * list, int user_id, int thread_fd, char* pseudo, char* IP_addr, unsigned short port, char* date);
 
-/* Remove an user from the users list based on it ID. Not applicable for system user */
+/* Remove an user from the users list based on his ID. Not applicable for system user */
 void users_delete_user(struct users * list, int user_id_to_delete);
 
 /* Return the pseudo (char *) of the given user id. The user must exist. */
