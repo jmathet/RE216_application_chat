@@ -2,7 +2,6 @@
 
 void init_serv_addr(struct sockaddr_in *serv_addr, int port)
  {
-   /* Modify specified sockaddr_in for the server side with specified port */
    // clean structure
    memset(serv_addr, 0, sizeof(*serv_addr));
    serv_addr->sin_family = AF_INET; // IP V4
@@ -12,169 +11,185 @@ void init_serv_addr(struct sockaddr_in *serv_addr, int port)
 
  void do_bind(int socket, struct sockaddr_in addr_in)
  {
-   /* Perform a bind on specified socket */
    int bind_result = bind(socket, (struct sockaddr *) &addr_in, sizeof(addr_in));
-   if (bind_result == -1) {
-     error("Error during socket binding");
-   }
+   if (-1 == bind_result)
+     error("bind");
  }
 
  void do_listen(int socket, int nb_max)
  {
-   /* Switch specified socket in the listen state */
    int listen_result = listen(socket, nb_max);
-   if (listen_result == -1) {
-     error("Error during socket listening");
-   }
+   if (-1 == listen_result)
+     error("listen");
  }
 
  int do_accept(int socket, struct sockaddr *addr, socklen_t* addrlen)
  {
-   /* Accept a connection with the specified socket and return the file des from accepted socket*/
    int file_des_new = accept(socket, addr, addrlen);
-   if(file_des_new == -1) {
-     error("Error while accepting a connection");
-   }
+   if(-1 == file_des_new)
+     error("accept");
    return file_des_new;
  }
 
 void *connection_handler(void* thread_input)
 {
-  /* Function called at the creation of a thread due to a new connection on the server */
-  // Inits
+  /* INITS */
+  int client_status = CLIENT_RUNNING;
   char message[MSG_MAXLEN];
+  thread_arg * thread_args;
 
-  // Get thread args
-  thread_arg * thread_args = (thread_arg *)thread_input;
-  int thread_fd_connection = thread_args->thread_fd_connection;
-  int my_id = thread_args->linked_user_id;
-  struct users * users_list = thread_args->users;
-  char * IP_addr = thread_args->IP_addr;
-  unsigned short port_number = thread_args->port_number;
+  /* MALLOC */
+  thread_args = malloc(sizeof(thread_arg));
 
+  /* THREAD ARGS GESTION (thread_args independant from thread_input of main) */
+  duplicate_threads_args((thread_arg *)thread_input, thread_args);
+  free(thread_input);
+
+  /* INCREASE MAIN NB_CONNECTIONS */
   ++ *(thread_args->pt_nb_conn); // increase number of nb_total_connections
   printf("=== Connection %i opened ===\n", *(thread_args->pt_nb_conn));
-  free(thread_input); // Free thread_input
 
-  // TODO : mettre dans une fonction get_date
-
+  /* CREATING THE USER INTO THE USERS TABLE */
   time_t mytime;
   mytime = time(NULL);
+  users_add_user(thread_args->users_list,
+          thread_args->user_id,
+          thread_args->connection_fd,
+          "Guest",
+          thread_args->client_IP,
+          thread_args->client_port,
+          ctime(&mytime));
 
-  users_list = users_add_user(users_list, my_id, thread_fd_connection, "Inconnu", IP_addr, port_number, ctime(&mytime));
-
-  while(1) {
-    //read what the client has to say
+  while(*(thread_args->pt_status) != SERVER_QUITTING && client_status != CLIENT_QUITTING) {
+    /* MESSAGE RECEPTION */
     memset(message, 0, MSG_MAXLEN);
-    read_line(thread_fd_connection, message);
-    printf("< Received [%s] : %s\n", users_get_user_pseudo(users_list, my_id), message);
+    read_line(thread_args->connection_fd, message);
+    printf("< Received [%s] : %s\n", users_get_user_pseudo(thread_args->users_list, thread_args->user_id), message);
 
-    if (strncmp("/nick", message, strlen("/nick")) == 0) {
-      int pseudo_length = strlen(message) - strlen("/nick ") - 1; // \n occupies 1 char
-      char pseudo[pseudo_length];
-      strcpy(pseudo, message+strlen("/nick "));
-      string_strip(pseudo);
-      user_set_pseudo(users_list, my_id, pseudo);
-      memset(message, 0, MSG_MAXLEN);
-      strcpy(message, "Hello ");
-      strcat (message, users_get_user_pseudo(users_list, my_id));
-    }
-    else if (strncmp("/who\n", message, strlen("/who\n")) == 0) {
-      char * pseudo_list;
-      pseudo_list = users_get_pseudo_list(users_list);
+    /* FUNCTION HANDLER */
+    if(message[0] == '/') { // if a command is sent
+      switch (parser(message)) {
+        case FUNC_NICK:
+          remove_line_breaks(message);
+          user_set_pseudo(thread_args->users_list, thread_args->user_id, message+strlen("/nick ")); // offset to remove command from temp buffer
+          break;
+
+        case FUNC_WHO:
+          printf("WHO");
+          /*
+                 char * pseudo_list;
+      pseudo_list = users_get_pseudo_list(thread_args->users_list);
       memset(message, 0, MSG_MAXLEN);
       strcpy(message, pseudo_list);
       free(pseudo_list);
-    }
-    else if (strncmp("/whos ", message, strlen("/whos ")) == 0) {
-      // TODO gérer le cas où on fait "/whos" sans donné de pseudo
-      char * info;
+           */
+          break;
+
+        case FUNC_WHOIS:
+          printf("WHOIS");
+          /*
+                 char * info;
       char * pseudo = malloc( (strlen(message)-strlen("/whos ")) * sizeof(char));
       strncpy(pseudo, message + strlen("/whos ")*sizeof(char), strlen(message)-strlen("/whos ")-1); // -1 to remove '\n'
-      info = users_get_info_user(users_list, pseudo);
+      info = users_get_info_user(thread_args->users_list, pseudo);
       memset(message, 0, MSG_MAXLEN);
       strcpy(message, info);
       free(info);
       free(pseudo);
+           */
+          break;
+
+        case FUNC_QUIT:
+          -- *(thread_args->pt_nb_conn); // decrease number of nb_total_connections
+          client_status = CLIENT_QUITTING;
+          users_delete_user(thread_args->users_list, thread_args->user_id);
+          break;
+
+        default:
+          printf("Invalid command.");
+          break;
+      } // END switch
+    } // END if command sent
+
+    /* REPEATER MODE */
+    send_line(thread_args->connection_fd, message);
+    if(client_status != CLIENT_QUITTING)
+      printf("> Sending [%s] : %s\n", users_get_user_pseudo(thread_args->users_list, thread_args->user_id),message);
     }
 
-    send_line(thread_fd_connection, message);
+  printf("=== Connection from user %i stopped ===\n", thread_args->user_id);
 
-    printf("> Sending [%s] : %s\n", users_get_user_pseudo(users_list, my_id),message);
+  /* CLEAN UP */
+  free(thread_args);
+  close(thread_args->connection_fd); // closing the fd associated to the connection
 
-    // check if /quit
-    if(strncmp("/quit", message, 5) == 0){
-      -- *(thread_args->pt_nb_conn); // decrease number of nb_total_connections
-      users_delete_user(users_list, my_id);
-      break;
-    }
-    memset(message, 0, MSG_MAXLEN);
-  }
-
-  printf("=== Connection stopped ===\n");
-  close(thread_fd_connection); // closing the fd associated to the connection
-  return NULL; // a thread should return a pointer
+  return NULL;
 }
 
-struct users* users_add_user(struct users * list, int user_id, int thread_fd, char* pseudo, char* IP_addr, unsigned short port, char * date){
-  // add a new user at the end of the list users
-  struct users * new_user = malloc(sizeof( struct users));
+void duplicate_threads_args(thread_arg * source_args, thread_arg * dest_args) {
+  dest_args->connection_fd = source_args->connection_fd;
+  dest_args->user_id = source_args->user_id;
+  dest_args->users_list = source_args->users_list;
+  dest_args->client_IP = source_args->client_IP;
+  dest_args->client_port = source_args->client_port;
+  dest_args->pt_nb_conn = source_args->pt_nb_conn;
+  dest_args->pt_status = source_args->pt_status;
+}
 
-  if (new_user == NULL) {
-    error("error creation new user");
-  }
-
-  new_user->user_id = user_id;
-  new_user->thread_fd = thread_fd;
-  new_user->pseudo = pseudo;
+void users_add_user(struct users * list, int user_id, int thread_fd, char* pseudo, char* IP_addr, unsigned short port, char * date){
+  struct users * new_user = malloc(sizeof(struct users));
+  // filling user structure
+  new_user->id = user_id;
+  new_user->associated_fd = thread_fd;
   new_user->IP_addr = IP_addr;
   new_user->port = port;
-  new_user->date = date;
+  new_user->connection_date = date;
   new_user->next = NULL;
+  new_user->pseudo = malloc(sizeof(char) * MSG_MAXLEN);
+  strcpy(new_user->pseudo, pseudo);
 
-  if (list == NULL) {
-    return new_user;
-  }
-
+  // finding the last user user of the list
   struct users *temp;
   temp=list;
-
   while (temp->next!=NULL) {
     temp=temp->next;
   }
+  // linking the new user
   temp->next=new_user;
-
-  return list;
 }
 
-struct users* users_delete_user(struct users * list, int user_id_to_delete){
-  /* Delete the user corresponding to the user_id_to_delete and return the new list */
+void users_delete_user(struct users * list, int user_id_to_delete){
   while (list->next!=NULL) {
-    if (user_id_to_delete==list->next->user_id) {
+    // check next user
+    if (user_id_to_delete==list->next->id) {
+      struct users * temp = list->next;
+      // unlink user
       list->next=list->next->next;
-      return list;
-    } else {
-      list=list->next;
+      free(temp->pseudo);
+      free(temp);
+      // end user research
+      break;
     }
+    else
+      list=list->next;
   }
-  return list;
 }
 
 char * users_get_user_pseudo(struct users * users, int user_id){
-  /* Return the pseudo of the user corresponding to the user_id */
-  while (users->user_id!=user_id) {
+  while (users->id!=user_id) {
     users = users->next;
   }
   return users->pseudo;
 }
 
 void user_set_pseudo(struct users * users, int user_id, char * pseudo){
-  /* Set the pseudo of the user corresponding to the user_id */
+  /* Set the pseudo of the user corresponding to the id */
   // TODO : check if the pseudo is not already used
-  while (users->user_id!=user_id) {
+  while (users->id!=user_id) {
     users = users->next;
   }
-  users->pseudo = pseudo;
+  remove_line_breaks(pseudo);
+  strcpy(users->pseudo, pseudo);
 }
 
 char *users_get_pseudo_list(struct users *users) {
@@ -182,7 +197,7 @@ char *users_get_pseudo_list(struct users *users) {
   char * pseudo_list = malloc(MSG_MAXLEN*sizeof(char));
   strcpy(pseudo_list, "\nOnline users are : \n");
   while (users!=NULL) {
-    if (users->user_id!=-1) {
+    if (users->id!=-1) {
       strcat(pseudo_list, "\t -");
       strcat(pseudo_list, users->pseudo);
       strcat(pseudo_list, "\n");
@@ -202,7 +217,7 @@ char *users_get_info_user(struct users * users, char *pseudo){
     sprintf(info, "No user found !");
   }
   else {
-    sprintf(info, "%s conncted since %s with the IP address %s and port number %d.\n", pseudo, users->date, users->IP_addr, users->port);
+    sprintf(info, "%s conncted since %s with the IP address %s and port number %d.\n", pseudo, users->connection_date, users->IP_addr, users->port);
   }
   return info;
 }
