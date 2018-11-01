@@ -78,4 +78,12 @@ void users_get_pseudo_display(struct users *users, char *pseudo_list);
 struct users *users_get_user(struct users *users_list, int id);
 
 char *users_get_info_user(struct users * users, char *message);
+
+/* Return the id of an user by its pseudo (pseudo-based search) */
+int users_get_id_by_pseudo(struct users *users, char *pseudo);
+
+/* Send a personnal message to an user identified by its id.
+ * The dest_id MUST exist and be checked before. */
+void send_message_to_user(struct users *users, int dest_id, char *message);
+
 #endif

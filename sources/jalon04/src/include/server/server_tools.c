@@ -35,6 +35,7 @@ void *connection_handler(void* thread_input)
 {
   /* INITS */
   int client_status = CLIENT_RUNNING;
+  int dest_id;
   char message[MSG_MAXLEN];
   thread_arg * thread_args;
   struct users * current_user;
@@ -48,7 +49,7 @@ void *connection_handler(void* thread_input)
 
   /* INCREASE MAIN NB_CONNECTIONS */
   ++ *(thread_args->pt_nb_conn); // increase number of nb_total_connections
-  printf("=== Connection %i opened ===\n", *(thread_args->pt_nb_conn));
+  printf("![System] : User %i connected.\n", thread_args->user_id);
 
   /* CREATING THE USER INTO THE USERS TABLE */
   time_t mytime;
@@ -66,24 +67,30 @@ void *connection_handler(void* thread_input)
 
     /* MESSAGE RECEPTION */
     memset(message, 0, MSG_MAXLEN);
-    if(0 != pthread_mutex_lock(&current_user->communication_mutex)) { error("pthread_mutex_lock"); }
     read_line(thread_args->connection_fd, message);
-    if(0 != pthread_mutex_unlock(&current_user->communication_mutex)) { error("pthread_mutex_unlock"); }
-    printf("<[%s] : %s\n", users_get_user_pseudo(thread_args->users_list, thread_args->user_id), message);
+    printf("<[%s] : %s", users_get_user_pseudo(thread_args->users_list, thread_args->user_id), message);
+    fflush(stdout);
 
     /* FUNCTION HANDLER */
     if(message[0] == '/') { // if a command is sent
       switch (parser(message)) {
         case FUNC_NICK:;
           user_set_pseudo(thread_args->users_list, thread_args->user_id, message);
+          if(0 != pthread_mutex_lock(&current_user->communication_mutex)) { error("pthread_mutex_lock"); }
           send_line(thread_args->connection_fd, message);
+          if(0 != pthread_mutex_unlock(&current_user->communication_mutex)) { error("pthread_mutex_unlock"); }
+          printf(">[%s] : %s", current_user->pseudo, message);
+          fflush(stdout);
           break;
 
         case FUNC_MSG:;
           char * command_arg;
           char * command_text;
           extract_command_args(message+strlen("/msg "), &command_arg, &command_text);
-          printf("Arg : %s, Text : %s", command_arg, command_text);
+          dest_id = users_get_id_by_pseudo(thread_args->users_list, command_arg);
+          send_message_to_user(thread_args->users_list, dest_id, command_text);
+          printf(">[%s] : %s", command_arg, command_text);
+          fflush(stdout);
           free(command_arg);
           free(command_text);
           break;
@@ -93,6 +100,8 @@ void *connection_handler(void* thread_input)
           if(0 != pthread_mutex_lock(&current_user->communication_mutex)) { error("pthread_mutex_lock"); }
           send_line(thread_args->connection_fd, message);
           if(0 != pthread_mutex_unlock(&current_user->communication_mutex)) { error("pthread_mutex_unlock"); }
+          printf(">[%s] : %s", current_user->pseudo, message);
+          fflush(stdout);
           break;
 
         case FUNC_WHOIS:;
@@ -100,6 +109,8 @@ void *connection_handler(void* thread_input)
           if(0 != pthread_mutex_lock(&current_user->communication_mutex)) { error("pthread_mutex_lock"); }
           send_line(thread_args->connection_fd, message);
           if(0 != pthread_mutex_unlock(&current_user->communication_mutex)) { error("pthread_mutex_unlock"); }
+          printf(">[%s] : %s", current_user->pseudo, message);
+          fflush(stdout);
           break;
 
         case FUNC_QUIT:; // TODO fix
@@ -109,13 +120,15 @@ void *connection_handler(void* thread_input)
           break;
 
         default:;
-          printf("Invalid command.");
+          printf("![System] : Invalid command from user %i.", current_user->id); // TODO informer l'user
+          fflush(stdout);
           break;
         } // END switch
       } // END if command sent
     } // END while
 
-  printf("=== Connection from user %i stopped ===\n", thread_args->user_id);
+  printf("![System] : Connection from user %i stopped.\n", thread_args->user_id);
+  fflush(stdout);
 
   /* CLEAN UP */
   free(thread_args);
@@ -203,14 +216,12 @@ void user_set_pseudo(struct users * users, int user_id, char * message){
   if (strcmp(users->pseudo, "Guest")==0) { //initial pseudo
     strcpy(users->pseudo, message + strlen("/nick "));
     memset(message, 0, MSG_MAXLEN);
-    strcat(message, "Welcome in the chat ");
-    strcat(message, users->pseudo);
+    sprintf(message, "Welcome in the chat %s !\n", users->pseudo);
   }
   else { //change of pseudo
     strcpy(users->pseudo, message + strlen("/nick "));
     memset(message, 0, MSG_MAXLEN);
-    strcat(message, "Your pseudo has been changed by ");
-    strcat(message, users->pseudo);
+    sprintf(message, "Your pseudo has been changed to %s.\n", users->pseudo);
   }
 }
 
@@ -246,4 +257,18 @@ char *users_get_info_user(struct users * users, char *message){
     sprintf(message, "%s connected since %s with the IP address %s and port number %d.\n", users->pseudo, users->connection_date, users->IP_addr, users->port);
   }
   return message;
+}
+
+int users_get_id_by_pseudo(struct users *users, char *pseudo) {
+  while(users != NULL && strcmp(users->pseudo, pseudo) != 0) {
+    users = users->next;
+  }
+  return users != NULL ? users->id : 0; // return the id of the user or 0 if not found
+}
+
+void send_message_to_user(struct users *users, int dest_id, char *message) {
+  struct users * dest_user = users_get_user(users, dest_id);
+  if(0 != pthread_mutex_lock(&dest_user->communication_mutex)) { error("pthread_mutex_lock"); }
+  send_line(dest_user->associated_fd, message);
+  if(0 != pthread_mutex_unlock(&dest_user->communication_mutex)) { error("pthread_mutex_unlock"); }
 }

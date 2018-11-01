@@ -9,7 +9,6 @@ int main(int argc,char** argv)
     int sock;
     struct sockaddr_in host_addr;
     char host_ip[10];
-    char message[MSG_MAXLEN];
     pthread_t reception_thread;
     pthread_t communication_thread;
     reception_arg * reception_input;
@@ -30,7 +29,7 @@ int main(int argc,char** argv)
     strncpy(host_ip, argv[1], 10);
     if(host_port <= 1024)
     {
-      fprintf(stderr, "Please use a non reserved port number.");
+      fprintf(stderr, "![System] : Please use a non reserved port number.");
       exit(EXIT_FAILURE);
     }
 
@@ -41,7 +40,7 @@ int main(int argc,char** argv)
 
     /* CHECK SERVER CAPACITY */
     if(read_int(sock) == SERVER_FULL) {
-      printf("Too many users connected to the server. Connection closed.\n");
+      printf("![Server] : Too many users connected to the server. Connection closed.\n");
       status = CLIENT_QUITTING;
     }
     else {
@@ -69,7 +68,7 @@ int main(int argc,char** argv)
         error("pthread_join");
       if(0 != pthread_join(communication_thread, NULL))
         error("pthread_join");
-      printf("=== Quiting. ===\n");
+      printf("![System] : Quiting.\n");
     }
 
     /* CLEAN UP */

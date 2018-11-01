@@ -27,8 +27,9 @@ void init_client_addr(struct sockaddr_in *serv_addr, char *ip, int port) {
      memset(message, 0, MSG_MAXLEN);
      fgets(message, MSG_MAXLEN-1, stdin);
      if(parser(message) == FUNC_NICK && is_pseudo_correct(message+6)) {
-       printf("> Sending : %s\n", message);
        send_line(sock, message);
+       printf(">(me) : %s", message);
+       fflush(stdout);
        finished=1;
      }
    } while(!finished);
@@ -41,7 +42,7 @@ void init_client_addr(struct sockaddr_in *serv_addr, char *ip, int port) {
   else
     return 0;
 }
-
+// TODO differencier mutex en lecture des mutex en écriture
 void * reception_handler(void * arg) {
   /* INITS */
   reception_arg * input = (reception_arg *) arg;
@@ -52,7 +53,8 @@ void * reception_handler(void * arg) {
     memset(message, 0, MSG_MAXLEN);
     pthread_mutex_lock(&input->sock_mutex);
     read_line(input->sock, message);
-    printf("\n< Answer received : %s\n", message);
+    printf("<[?] : %s", message);
+    fflush(stdout);
     pthread_mutex_unlock(&input->sock_mutex);
 
     // check if /quit
@@ -71,7 +73,8 @@ void * communication_handler(void * arg) {
   while(input->status != CLIENT_QUITTING) {
     memset(message, 0, MSG_MAXLEN);
     fgets(message, MSG_MAXLEN-1, stdin);
-    printf("> Sending : %s\n", message);
+    printf(">(me) : %s", message);
+    fflush(stdout);
     pthread_mutex_lock(&input->sock_mutex);
     send_line(input->sock, message);
     pthread_mutex_unlock(&input->sock_mutex);
