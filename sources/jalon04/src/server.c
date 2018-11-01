@@ -45,6 +45,7 @@ int main(int argc, char** argv)
     /* SYSTEM USER CREATION (first and permanent invisible user) */
     memset(system_user, 0, sizeof(struct users));
     system_user->id = 0;
+    system_user->pseudo = "";
     system_user->next = NULL;
 
     /* SERVER - main flow is accepting connections and creating threads */

@@ -72,5 +72,5 @@ void users_get_pseudo_display(struct users *users, char *pseudo_list);
  * The user MUST exist. */
 struct users *users_get_user(struct users *users_list, int id);
 
-char *users_get_info_user(struct users * users, char *pseudo);
+char *users_get_info_user(struct users * users, char *message);
 #endif

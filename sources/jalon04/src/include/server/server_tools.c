@@ -85,7 +85,6 @@ void *connection_handler(void* thread_input)
           break;
 
         case FUNC_WHO:
-          memset(message, 0, MSG_MAXLEN);
           users_get_pseudo_display(thread_args->users_list, message);
           if(0 != pthread_mutex_lock(&current_user->communication_mutex)) { error("pthread_mutex_lock"); }
           send_line(thread_args->connection_fd, message);
@@ -93,17 +92,10 @@ void *connection_handler(void* thread_input)
           break;
 
         case FUNC_WHOIS:
-          printf("WHOIS");
-          /*
-                 char * info;
-      char * pseudo = malloc( (strlen(message)-strlen("/whos ")) * sizeof(char));
-      strncpy(pseudo, message + strlen("/whos ")*sizeof(char), strlen(message)-strlen("/whos ")-1); // -1 to remove '\n'
-      info = users_get_info_user(thread_args->users_list, pseudo);
-      memset(message, 0, MSG_MAXLEN);
-      strcpy(message, info);
-      free(info);
-      free(pseudo);
-           */
+          users_get_info_user(thread_args->users_list, message);
+          if(0 != pthread_mutex_lock(&current_user->communication_mutex)) { error("pthread_mutex_lock"); }
+          send_line(thread_args->connection_fd, message);
+          if(0 != pthread_mutex_unlock(&current_user->communication_mutex)) { error("pthread_mutex_unlock"); }
           break;
 
         case FUNC_QUIT:
@@ -195,13 +187,13 @@ void user_set_pseudo(struct users * users, int user_id, char * message){
     users = users->next;
   }
   remove_line_breaks(message);
-  if (strcmp(users->pseudo, "Guest")==0) {
+  if (strcmp(users->pseudo, "Guest")==0) { //initial pseudo
     strcpy(users->pseudo, message + strlen("/nick "));
     memset(message, 0, MSG_MAXLEN);
     strcat(message, "Welcome in the chat ");
     strcat(message, users->pseudo);
   }
-  else {
+  else { //change of pseudo
     strcpy(users->pseudo, message + strlen("/nick "));
     memset(message, 0, MSG_MAXLEN);
     strcat(message, "Your pseudo has been changed by ");
@@ -227,17 +219,18 @@ struct users *users_get_user(struct users *users_list, int id) {
   return users_list;
 }
 
-char *users_get_info_user(struct users * users, char *pseudo){
+char *users_get_info_user(struct users * users, char *message){
   /* Return information of the corresponding user */
-  char * info = malloc(MSG_MAXLEN*sizeof(char));
-  while (strcmp(users->pseudo, pseudo)!=0 && users!=NULL) {
+  remove_line_breaks(message);
+  while (users!=NULL && strcmp(users->pseudo, message + strlen("/whois ")*sizeof(char))!=0) {
     users = users->next;
   }
+  memset(message, 0, MSG_MAXLEN);
   if (users==NULL) {
-    sprintf(info, "No user found !");
+    sprintf(message, "No user found !");
   }
   else {
-    sprintf(info, "%s conncted since %s with the IP address %s and port number %d.\n", pseudo, users->connection_date, users->IP_addr, users->port);
+    sprintf(message, "%s connected since %s with the IP address %s and port number %d.\n", users->pseudo, users->connection_date, users->IP_addr, users->port);
   }
-  return info;
+  return message;
 }
