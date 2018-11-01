@@ -104,6 +104,10 @@ int parser(char * message) {
     return FUNC_WHO;
   else if(0 == strncmp("/whois ", message, strlen("/whois ")))
     return FUNC_WHOIS;
+  else if(0 == strncmp("/msg ", message, strlen("/msg ")))
+    return FUNC_MSG;
+  else if(0 == strncmp("/msgall ", message, strlen("/msgall ")))
+    return FUNC_MSGALL;
   else
     return FUNC_UNDEFINED;
 }

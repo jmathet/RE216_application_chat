@@ -70,8 +70,7 @@ int main(int argc, char** argv)
 
           // thread args initialisation
           thread_input->connection_fd = connection_fd;
-          thread_input->user_id = users_counter + 1;
-          users_counter++;
+          thread_input->user_id = users_counter++;
           thread_input->pt_nb_conn = &nb_connections;
           thread_input->pt_status = &status;
           thread_input->users_list = system_user;
@@ -91,7 +90,7 @@ int main(int argc, char** argv)
 
     /* CLEAN UP */
     close(sock);
-    free(system_user); // TODO cleaner tous les utilisateurs, à voir en fonction de la gestion de fermeture du serveur
+    free(system_user);
 
     return 0;
 }

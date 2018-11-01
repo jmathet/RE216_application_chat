@@ -17,6 +17,7 @@
 struct users{
   int id;
   int associated_fd;
+  pthread_mutex_t communication_mutex;
   char *pseudo;
   char *IP_addr;
   unsigned short port;
@@ -66,5 +67,10 @@ void user_set_pseudo(struct users * users, int user_id, char * message);
 
 /* Return the list of connected users to the server into pseudo_list pointer */
 void users_get_pseudo_display(struct users *users, char *pseudo_list);
+
+/* Return pointer to the user identified by an ID (id-based search)
+ * The user MUST exist. */
+struct users *users_get_user(struct users *users_list, int id);
+
 char *users_get_info_user(struct users * users, char *pseudo);
 #endif

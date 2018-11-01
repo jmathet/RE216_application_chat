@@ -37,6 +37,7 @@ void *connection_handler(void* thread_input)
   int client_status = CLIENT_RUNNING;
   char message[MSG_MAXLEN];
   thread_arg * thread_args;
+  struct users * current_user;
 
   /* MALLOC */
   thread_args = malloc(sizeof(thread_arg));
@@ -59,12 +60,16 @@ void *connection_handler(void* thread_input)
           thread_args->client_IP,
           thread_args->client_port,
           ctime(&mytime));
+  current_user = users_get_user(thread_args->users_list, thread_args->user_id);
 
   while(*(thread_args->pt_status) != SERVER_QUITTING && client_status != CLIENT_QUITTING) {
+    char * pseudo_test, texte_test; /////////////////////
     /* MESSAGE RECEPTION */
     memset(message, 0, MSG_MAXLEN);
+    if(0 != pthread_mutex_lock(&current_user->communication_mutex)) { error("pthread_mutex_lock"); }
     read_line(thread_args->connection_fd, message);
-    printf("< Received [%s] : %s\n", users_get_user_pseudo(thread_args->users_list, thread_args->user_id), message);
+    if(0 != pthread_mutex_unlock(&current_user->communication_mutex)) { error("pthread_mutex_unlock"); }
+    printf("<[%s] : %s\n", users_get_user_pseudo(thread_args->users_list, thread_args->user_id), message);
 
     /* FUNCTION HANDLER */
     if(message[0] == '/') { // if a command is sent
@@ -74,10 +79,17 @@ void *connection_handler(void* thread_input)
           send_line(thread_args->connection_fd, message);
           break;
 
+        case FUNC_MSG:
+          if(sscanf("/msg %s %[^\n]", pseudo_test, texte_test) <= 0) { error("sscanf"); }
+          printf("Pseudo : %s", pseudo_test);
+          break;
+
         case FUNC_WHO:
           memset(message, 0, MSG_MAXLEN);
           users_get_pseudo_display(thread_args->users_list, message);
+          if(0 != pthread_mutex_lock(&current_user->communication_mutex)) { error("pthread_mutex_lock"); }
           send_line(thread_args->connection_fd, message);
+          if(0 != pthread_mutex_unlock(&current_user->communication_mutex)) { error("pthread_mutex_unlock"); }
           break;
 
         case FUNC_WHOIS:
@@ -136,7 +148,12 @@ void users_add_user(struct users * list, int user_id, int thread_fd, char* pseud
   new_user->connection_date = date;
   new_user->next = NULL;
   new_user->pseudo = malloc(sizeof(char) * MSG_MAXLEN);
+
+  // pseudo filling
   strcpy(new_user->pseudo, pseudo);
+
+  // mutex init
+  pthread_mutex_init(&new_user->communication_mutex, NULL);
 
   // finding the last user user of the list
   struct users *temp;
@@ -202,6 +219,12 @@ void users_get_pseudo_display(struct users *users, char *pseudo_list) {
     }
     users = users->next;
   }
+}
+
+struct users *users_get_user(struct users *users_list, int id) {
+  while(users_list->id != id)
+    users_list = users_list->next;
+  return users_list;
 }
 
 char *users_get_info_user(struct users * users, char *pseudo){

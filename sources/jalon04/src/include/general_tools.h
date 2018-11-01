@@ -30,7 +30,9 @@ enum FUNCTIONS {
     FUNC_QUIT,
     FUNC_NICK,
     FUNC_WHO,
-    FUNC_WHOIS
+    FUNC_WHOIS,
+    FUNC_MSG,
+    FUNC_MSGALL
 };
 
 /* Interrupt program because of an error
