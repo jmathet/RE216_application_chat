@@ -88,8 +88,16 @@ void *connection_handler(void* thread_input)
           char * command_text;
           extract_command_args(message+strlen("/msg "), &command_arg, &command_text);
           dest_id = users_get_id_by_pseudo(thread_args->users_list, command_arg);
-          send_message_to_user(thread_args->users_list, dest_id, command_text);
-          printf(">[%s] : %s", command_arg, command_text);
+          if (0 != dest_id) {
+            send_message_to_user(thread_args->users_list, dest_id, command_text);
+            printf(">[%s] : %s", command_arg, command_text);
+          }
+          else {
+            if (0 != pthread_mutex_lock(&current_user->communication_mutex)) { error("pthread_mutex_lock"); }
+            send_line(thread_args->connection_fd, "Error : unknown user.\n");
+            if (0 != pthread_mutex_unlock(&current_user->communication_mutex)) { error("pthread_mutex_unlock"); }
+            printf(">[%s] : Error : unknown user.\n", current_user->pseudo);
+          }
           fflush(stdout);
           free(command_arg);
           free(command_text);
