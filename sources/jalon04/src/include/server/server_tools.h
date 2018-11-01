@@ -53,6 +53,11 @@ void *connection_handler(void* sock);
 /* Duplicate struct threads_arg content between two allocated pointers */
 void duplicate_threads_args(thread_arg * source_args, thread_arg * dest_args);
 
+/* Given a pointer on first arg of the command message, the function will duplicate the argument
+ * inside command_arg and the remaining text inside command_text. Those those pointers will be
+ * allocated inside the function and need to be free after use in the program. */
+void extract_command_args(char *message_pointer, char **pt_command_arg, char **pt_command_text);
+
 /* Add an user at to the list of ALREADY EXISTING users (at least system user). Users is added by the right side. */
 void users_add_user(struct users * list, int user_id, int thread_fd, char* pseudo, char* IP_addr, unsigned short port, char* date);
 

@@ -44,7 +44,7 @@ void *connection_handler(void* thread_input)
 
   /* THREAD ARGS GESTION (thread_args independant from thread_input of main) */
   duplicate_threads_args((thread_arg *)thread_input, thread_args);
-  free(thread_input);
+  free(thread_input); // allocated in the main
 
   /* INCREASE MAIN NB_CONNECTIONS */
   ++ *(thread_args->pt_nb_conn); // increase number of nb_total_connections
@@ -63,7 +63,7 @@ void *connection_handler(void* thread_input)
   current_user = users_get_user(thread_args->users_list, thread_args->user_id);
 
   while(*(thread_args->pt_status) != SERVER_QUITTING && client_status != CLIENT_QUITTING) {
-    char * pseudo_test, texte_test; /////////////////////
+
     /* MESSAGE RECEPTION */
     memset(message, 0, MSG_MAXLEN);
     if(0 != pthread_mutex_lock(&current_user->communication_mutex)) { error("pthread_mutex_lock"); }
@@ -74,37 +74,41 @@ void *connection_handler(void* thread_input)
     /* FUNCTION HANDLER */
     if(message[0] == '/') { // if a command is sent
       switch (parser(message)) {
-        case FUNC_NICK:
+        case FUNC_NICK:;
           user_set_pseudo(thread_args->users_list, thread_args->user_id, message);
           send_line(thread_args->connection_fd, message);
           break;
 
-        case FUNC_MSG:
-          if(sscanf("/msg %s %[^\n]", pseudo_test, texte_test) <= 0) { error("sscanf"); }
-          printf("Pseudo : %s", pseudo_test);
+        case FUNC_MSG:;
+          char * command_arg;
+          char * command_text;
+          extract_command_args(message+strlen("/msg "), &command_arg, &command_text);
+          printf("Arg : %s, Text : %s", command_arg, command_text);
+          free(command_arg);
+          free(command_text);
           break;
 
-        case FUNC_WHO:
+        case FUNC_WHO:;
           users_get_pseudo_display(thread_args->users_list, message);
           if(0 != pthread_mutex_lock(&current_user->communication_mutex)) { error("pthread_mutex_lock"); }
           send_line(thread_args->connection_fd, message);
           if(0 != pthread_mutex_unlock(&current_user->communication_mutex)) { error("pthread_mutex_unlock"); }
           break;
 
-        case FUNC_WHOIS:
+        case FUNC_WHOIS:;
           users_get_info_user(thread_args->users_list, message);
           if(0 != pthread_mutex_lock(&current_user->communication_mutex)) { error("pthread_mutex_lock"); }
           send_line(thread_args->connection_fd, message);
           if(0 != pthread_mutex_unlock(&current_user->communication_mutex)) { error("pthread_mutex_unlock"); }
           break;
 
-        case FUNC_QUIT:
+        case FUNC_QUIT:; // TODO fix
           -- *(thread_args->pt_nb_conn); // decrease number of nb_total_connections
           client_status = CLIENT_QUITTING;
           users_delete_user(thread_args->users_list, thread_args->user_id);
           break;
 
-        default:
+        default:;
           printf("Invalid command.");
           break;
         } // END switch
@@ -128,6 +132,15 @@ void duplicate_threads_args(thread_arg * source_args, thread_arg * dest_args) {
   dest_args->client_port = source_args->client_port;
   dest_args->pt_nb_conn = source_args->pt_nb_conn;
   dest_args->pt_status = source_args->pt_status;
+}
+
+void extract_command_args(char *message_pointer, char **pt_command_arg, char **pt_command_text) {
+  int i=0;
+  while(message_pointer[i] != ' ') { // detect end of the command arg
+    i++;
+  }
+  *pt_command_arg = strndup(message_pointer, i);
+  *pt_command_text = strdup(message_pointer+i+1);
 }
 
 void users_add_user(struct users * list, int user_id, int thread_fd, char* pseudo, char* IP_addr, unsigned short port, char * date){
