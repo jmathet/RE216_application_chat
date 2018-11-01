@@ -70,7 +70,8 @@ void *connection_handler(void* thread_input)
     if(message[0] == '/') { // if a command is sent
       switch (parser(message)) {
         case FUNC_NICK:
-          user_set_pseudo(thread_args->users_list, thread_args->user_id, message+strlen("/nick ")); // offset to remove command from temp buffer
+          user_set_pseudo(thread_args->users_list, thread_args->user_id, message);
+          send_line(thread_args->connection_fd, message);
           break;
 
         case FUNC_WHO:
@@ -171,13 +172,24 @@ char * users_get_user_pseudo(struct users * users, int user_id){
   return users->pseudo;
 }
 
-void user_set_pseudo(struct users * users, int user_id, char * pseudo){
+void user_set_pseudo(struct users * users, int user_id, char * message){
   // TODO : check if the pseudo is not already used
   while (users->id!=user_id) {
     users = users->next;
   }
-  remove_line_breaks(pseudo);
-  strcpy(users->pseudo, pseudo);
+  remove_line_breaks(message);
+  if (strcmp(users->pseudo, "Guest")==0) {
+    strcpy(users->pseudo, message + strlen("/nick "));
+    memset(message, 0, MSG_MAXLEN);
+    strcat(message, "Welcome in the chat ");
+    strcat(message, users->pseudo);
+  }
+  else {
+    strcpy(users->pseudo, message + strlen("/nick "));
+    memset(message, 0, MSG_MAXLEN);
+    strcat(message, "Your pseudo has been changed by ");
+    strcat(message, users->pseudo);
+  }
 }
 
 void users_get_pseudo_display(struct users *users, char *pseudo_list) {
