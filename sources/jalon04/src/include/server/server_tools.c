@@ -39,6 +39,7 @@ void *connection_handler(void* thread_input)
   char message[MSG_MAXLEN];
   thread_arg * thread_args;
   struct users * current_user;
+  struct users * temp_user;
 
   /* MALLOC */
   thread_args = malloc(sizeof(thread_arg));
@@ -104,15 +105,12 @@ void *connection_handler(void* thread_input)
           break;
 
         case FUNC_MSGALL:;
-          struct users * users_temp = malloc(sizeof(struct users));
-          users_temp = thread_args->users_list->next;
-          int dest_id;
-          while (users_temp != NULL){
-            dest_id = users_temp->id;
-            send_message_to_user(users_temp, dest_id, message+strlen("/msgall "));
-            users_temp = users_temp->next;
+          temp_user = thread_args->users_list->next; // avoid user 0 "system"
+          while (temp_user != NULL){
+            dest_id = temp_user->id;
+            send_message_to_user(temp_user, dest_id, message+strlen("/msgall "));
+            temp_user = temp_user->next;
           }
-          free(users_temp);
           break;
 
         case FUNC_WHO:;
@@ -133,7 +131,7 @@ void *connection_handler(void* thread_input)
           fflush(stdout);
           break;
 
-        case FUNC_QUIT:; // TODO fix
+        case FUNC_QUIT:; // TODO fix - problème au niveau de la terminaison des threads
           -- *(thread_args->pt_nb_conn); // decrease number of nb_total_connections
           client_status = CLIENT_QUITTING;
           users_delete_user(thread_args->users_list, thread_args->user_id);

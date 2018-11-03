@@ -10,6 +10,7 @@ void init_client_addr(struct sockaddr_in *serv_addr, char *ip, int port) {
 
  void do_connect(int sock, struct sockaddr_in host_addr) {
    int connect_result;
+
    do {
      connect_result = connect(sock, (struct sockaddr *) &host_addr, sizeof(host_addr));
    } while ((connect_result == -1) && (errno == EAGAIN || errno == EINTR));
@@ -21,12 +22,13 @@ void init_client_addr(struct sockaddr_in *serv_addr, char *ip, int port) {
  void auth_user(int sock) {
   char message[MSG_MAXLEN];
   int finished = 0;
+
   do {
-     printf("Please identify yourself by using '/nick <Your Name>' : ");
+     printf("![System] : Please identify yourself by using '/nick <Your Name>'  ");
      //get user input
      memset(message, 0, MSG_MAXLEN);
      fgets(message, MSG_MAXLEN-1, stdin);
-     if(parser(message) == FUNC_NICK && is_pseudo_correct(message+6)) {
+     if(parser(message) == FUNC_NICK && is_pseudo_correct(message+strlen("/nick "))) {
        send_line(sock, message);
        printf(">(me) : %s", message);
        fflush(stdout);

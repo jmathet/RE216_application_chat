@@ -58,7 +58,7 @@ int main(int argc, char** argv)
 
         // check if there is a reason to refuse the client
         if(nb_connections >= USERS_NB_MAX) {// is the max numbers of clients reached ?
-          printf("! Connection from a client closed : too many users.\n");
+          printf("![Server] : Connection from a client closed : too many users.\n");
           send_int(connection_fd, SERVER_FULL);
           status = SERVER_QUITTING;
         }
