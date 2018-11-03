@@ -43,6 +43,7 @@ void init_client_addr(struct sockaddr_in *serv_addr, char *ip, int port) {
     return 0;
 }
 // TODO differencier mutex en lecture des mutex en écriture
+// TODO passer le pseudo de l'emetteur du message pour l'affiche à la réception
 void * reception_handler(void * arg) {
   /* INITS */
   reception_arg * input = (reception_arg *) arg;

@@ -103,6 +103,18 @@ void *connection_handler(void* thread_input)
           free(command_text);
           break;
 
+        case FUNC_MSGALL:;
+          struct users * users_temp = malloc(sizeof(struct users));
+          users_temp = thread_args->users_list->next;
+          int dest_id;
+          while (users_temp != NULL){
+            dest_id = users_temp->id;
+            send_message_to_user(users_temp, dest_id, message+strlen("/msgall "));
+            users_temp = users_temp->next;
+          }
+          free(users_temp);
+          break;
+
         case FUNC_WHO:;
           users_get_pseudo_display(thread_args->users_list, message);
           if(0 != pthread_mutex_lock(&current_user->communication_mutex)) { error("pthread_mutex_lock"); }
