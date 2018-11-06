@@ -35,6 +35,14 @@ typedef struct thread_arg {
   volatile int * pt_status;
 } thread_arg;
 
+typedef struct channel {
+    int id;
+    char* name;
+    int members[NB_MAX_CLIENT];
+    int nb_users_inside;
+    struct channel* next;
+}channel;
+
 /* Modify specified sockaddr_in for the server side with specified port */
 void init_serv_addr(struct sockaddr_in *serv_addr, int port);
 
