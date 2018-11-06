@@ -107,5 +107,9 @@ void channel_add_user(struct channel * channels_list, struct users* users_list, 
 
 struct channel *channels_get_channel(struct channel* channels, int channel_id);
 
+void channel_delete_user(struct channel* channels_list,struct users* users_list, int user_id, char * message);
+
+void channels_delete_channel(struct channel * channels_list, int channel_id);
+
 
 #endif

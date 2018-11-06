@@ -83,7 +83,7 @@ void * communication_handler(void * arg) {
     pthread_mutex_unlock(&input->sock_mutex);
 
     // check if /quit
-    if(strncmp("/quit", message, 5) == 0)
+    if(strncmp("/quit\n", message, 6) == 0)
       input->status = CLIENT_QUITTING;
   }
   return NULL;

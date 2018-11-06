@@ -96,7 +96,7 @@ void send_line(int file_des, const void *str)
 }
 
 int parser(char * message) {
-  if(0 == strncmp("/quit ", message, strlen("/quit")))
+  if(0 == strncmp("/quit\n", message, strlen("/quit\n")))
     return FUNC_QUIT;
   else if(0 == strncmp("/nick ", message, strlen("/nick ")))
     return FUNC_NICK;
@@ -112,6 +112,8 @@ int parser(char * message) {
     return FUNC_CHANNEL_CREATE;
   else if(0 == strncmp("/join ", message, strlen("/join ")))
     return FUNC_CHANNEL_JOIN;
+  else if(0 == strncmp("/quit ", message, strlen("/quit ")))
+    return FUNC_CHANNEL_QUIT;
   else
     return FUNC_UNDEFINED;
 }

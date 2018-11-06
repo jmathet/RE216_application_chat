@@ -34,7 +34,8 @@ enum FUNCTIONS {
     FUNC_MSG,
     FUNC_MSGALL,
     FUNC_CHANNEL_CREATE,
-    FUNC_CHANNEL_JOIN
+    FUNC_CHANNEL_JOIN,
+    FUNC_CHANNEL_QUIT
 };
 
 /* Interrupt program because of an error

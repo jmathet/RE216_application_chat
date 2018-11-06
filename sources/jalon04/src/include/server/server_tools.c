@@ -151,6 +151,10 @@ void *connection_handler(void* thread_input)
           if(0 != pthread_mutex_unlock(&current_user->communication_mutex)) { error("pthread_mutex_unlock"); }
           break;
 
+        case FUNC_CHANNEL_QUIT:;
+          channel_delete_user(thread_args->channel_list, thread_args->users_list, thread_args->user_id, message);
+          break;
+
         default:;
           printf("![System] : Invalid command from user %i.", current_user->id); // TODO informer l'user
           fflush(stdout);
@@ -415,4 +419,36 @@ struct channel *channels_get_channel(struct channel* channels, int channel_id){
   return channels;
 }
 
+void channel_delete_user(struct channel* channels_list,struct users* users_list, int user_id, char * message){
+  struct users *temp_user = users_get_user(users_list, user_id);
+  struct channel * channel_temp = channels_get_channel(channels_list, temp_user->channel_id);
+  // Delete the user from the members list
+  for (int i = 0; i < NB_MAX_CLIENT ; i++) {
+    if (channel_temp->members[i]==user_id)
+      channel_temp->members[i]=0;
+  }
+  // Decrease the members counter
+  channel_temp->nb_users_inside--;
+  // Check if this user is the last one
+  if (channel_temp->nb_users_inside==0){
+    channels_delete_channel(channels_list, channel_temp->id);
+  }
+}
+
+void channels_delete_channel(struct channel * list, int channel_id_to_delete){
+  while (list->next!=NULL) {
+    // check next user
+    if (channel_id_to_delete==list->next->id) {
+      struct channel * temp = list->next;
+      // unlink user
+      list->next=list->next->next;
+      free(temp->name);
+      free(temp);
+      // end user research
+      break;
+    }
+    else
+      list=list->next;
+  }
+}
 
