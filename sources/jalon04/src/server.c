@@ -18,9 +18,11 @@ int main(int argc, char** argv)
     pthread_t thread;
     thread_arg * thread_input; // args for thread creation
     struct users * system_user;
+    struct channel * system_channel;
 
     /* MALLOC */
     system_user = malloc(sizeof(struct users));
+    system_channel = malloc((sizeof(struct channel)));
 
     /* ARGS CHECK */
     if (argc != 2) {
@@ -48,7 +50,14 @@ int main(int argc, char** argv)
     system_user->pseudo = "";
     system_user->next = NULL;
 
-    /* SERVER - main flow is accepting connections and creating threads */
+    /* SYSTEM CHANNEL CREATION (first and permanent invisible channel) */
+    memset(system_channel, 0, sizeof(struct channel));
+    system_channel->id = 0;
+    system_channel->name = "";
+    system_channel->next = NULL;
+
+
+  /* SERVER - main flow is accepting connections and creating threads */
     while(status != SERVER_QUITTING)
     {
         // receiving new connections from clients
@@ -75,6 +84,7 @@ int main(int argc, char** argv)
           thread_input->pt_nb_conn = &nb_connections;
           thread_input->pt_status = &status;
           thread_input->users_list = system_user;
+          thread_input->channel_list = system_channel;
           thread_input->client_IP = inet_ntoa(client_addr.sin_addr);
           thread_input->client_port = ntohs(client_addr.sin_port);
 

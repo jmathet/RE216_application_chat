@@ -108,6 +108,8 @@ int parser(char * message) {
     return FUNC_MSG;
   else if(0 == strncmp("/msgall ", message, strlen("/msgall ")))
     return FUNC_MSGALL;
+  else if(0 == strncmp("/create ", message, strlen("/create ")))
+    return FUNC_CHANNEL_CREATE;
   else
     return FUNC_UNDEFINED;
 }

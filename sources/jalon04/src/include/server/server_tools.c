@@ -136,6 +136,10 @@ void *connection_handler(void* thread_input)
           client_status = CLIENT_QUITTING;
           users_delete_user(thread_args->users_list, thread_args->user_id);
           break;
+        case FUNC_CHANNEL_CREATE:;
+          channels_add_channel(thread_args->channel_list, message);
+          send_line(thread_args->connection_fd, message);
+          break;
 
         default:;
           printf("![System] : Invalid command from user %i.", current_user->id); // TODO informer l'user
@@ -159,6 +163,7 @@ void duplicate_threads_args(thread_arg * source_args, thread_arg * dest_args) {
   dest_args->connection_fd = source_args->connection_fd;
   dest_args->user_id = source_args->user_id;
   dest_args->users_list = source_args->users_list;
+  dest_args->channel_list = source_args->channel_list;
   dest_args->client_IP = source_args->client_IP;
   dest_args->client_port = source_args->client_port;
   dest_args->pt_nb_conn = source_args->pt_nb_conn;
@@ -173,7 +178,7 @@ void extract_command_args(char *message_pointer, char **pt_command_arg, char **p
   *pt_command_arg = strndup(message_pointer, i);
   *pt_command_text = strdup(message_pointer+i+1);
 }
-
+// TODO : mettre les fonctions de gestion des users dans un fichier
 void users_add_user(struct users * list, int user_id, int thread_fd, char* pseudo, char* IP_addr, unsigned short port, char * date){
   struct users * new_user = malloc(sizeof(struct users));
   // filling user structure
@@ -289,4 +294,50 @@ void send_message_to_user(struct users *users, int dest_id, char *message) {
   if(0 != pthread_mutex_lock(&dest_user->communication_mutex)) { error("pthread_mutex_lock"); }
   send_line(dest_user->associated_fd, message);
   if(0 != pthread_mutex_unlock(&dest_user->communication_mutex)) { error("pthread_mutex_unlock"); }
+}
+
+int channels_find_name(struct channel *channel_list, char *name){
+  struct channel * temp = channel_list->next;
+  while (temp != NULL){
+    printf("%s\n", temp->name);
+    printf("strcmp = %d\n", strcmp(temp->name,name));
+    if (strcmp(temp->name,name)==0){
+      return 0;
+    }
+    temp = temp->next;
+  }
+  return 1;
+}
+
+void channels_add_channel(struct channel *channel_list, char *message){
+  char * name = malloc(sizeof(strlen(message) - strlen("/create ")));
+  remove_line_breaks(message);
+  strcpy(name, message + strlen("/create "));
+  struct channel * new_channel = malloc(sizeof(struct channel));
+  struct channel * temp = channel_list;
+  while (temp->next != NULL){
+    temp = temp->next;
+  }
+
+  //printf("my name = %s\n", name);
+  // filling channel structure
+  new_channel->id = temp->id +1;
+  strcpy(new_channel->name, name);
+  new_channel->nb_users_inside = 0;
+  new_channel->next = NULL;
+
+  //printf("new name %s\n", new_channel->name);
+
+  memset(message, 0, MSG_MAXLEN);
+  /*if (channels_find_name(channel_list, new_channel->name)==0){ // case name already used
+    sprintf(message, "The channel name %s is already used ! Error creation channel\n", new_channel->name);
+    free(new_channel);
+  } else{ // creation OK
+    sprintf(message, "The channel %s created !\n", new_channel->name);
+    // linking the new user at the end of the channel list
+    temp->next = new_channel;
+  }*/
+  sprintf(message, "The channel %s created !\n", new_channel->name);
+  // linking the new user at the end of the channel list
+  temp->next = new_channel;
 }

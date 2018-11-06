@@ -22,6 +22,7 @@ struct users{
   char *IP_addr;
   unsigned short port;
   char * connection_date;
+  //int channel;
   struct users* next;
 };
 
@@ -29,6 +30,7 @@ typedef struct thread_arg {
   int connection_fd;
   int user_id;
   struct users * users_list;
+  struct channel * channel_list;
   char * client_IP;
   int client_port;
   volatile int * pt_nb_conn;
@@ -93,5 +95,9 @@ int users_get_id_by_pseudo(struct users *users, char *pseudo);
 /* Send a personnal message to an user identified by its id.
  * The dest_id MUST exist and be checked before. */
 void send_message_to_user(struct users *users, int dest_id, char *message);
+
+/* Add an channel at to the list of ALREADY EXISTING channels (at least system channel). Users is added by the right side. */
+void channels_add_channel(struct channel *channel_list, char *message);
+
 
 #endif
