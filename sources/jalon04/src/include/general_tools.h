@@ -33,7 +33,8 @@ enum FUNCTIONS {
     FUNC_WHOIS,
     FUNC_MSG,
     FUNC_MSGALL,
-    FUNC_CHANNEL_CREATE
+    FUNC_CHANNEL_CREATE,
+    FUNC_CHANNEL_JOIN
 };
 
 /* Interrupt program because of an error

@@ -136,9 +136,19 @@ void *connection_handler(void* thread_input)
           client_status = CLIENT_QUITTING;
           users_delete_user(thread_args->users_list, thread_args->user_id);
           break;
+
         case FUNC_CHANNEL_CREATE:;
           channels_add_channel(thread_args->channel_list, message);
+          if(0 != pthread_mutex_lock(&current_user->communication_mutex)) { error("pthread_mutex_lock"); }
           send_line(thread_args->connection_fd, message);
+          if(0 != pthread_mutex_unlock(&current_user->communication_mutex)) { error("pthread_mutex_unlock"); }
+          break;
+
+        case FUNC_CHANNEL_JOIN:;
+          channel_add_user(thread_args->channel_list,thread_args->users_list, thread_args->user_id, message);
+          if(0 != pthread_mutex_lock(&current_user->communication_mutex)) { error("pthread_mutex_lock"); }
+          send_line(thread_args->connection_fd, message);
+          if(0 != pthread_mutex_unlock(&current_user->communication_mutex)) { error("pthread_mutex_unlock"); }
           break;
 
         default:;
@@ -147,6 +157,17 @@ void *connection_handler(void* thread_input)
           break;
         } // END switch
       } // END if command sent
+      else {
+        int channel_id = users_get_user_channelid(thread_args->users_list, thread_args->user_id);
+        if (channel_id != 0) {
+          struct channel *channel = channels_get_channel(thread_args->channel_list, channel_id);
+          for (int i = 0; i < channel->nb_users_inside; i++) {
+            send_message_to_user(thread_args->users_list, channel->members[i], message);
+            printf(">[%s] : %s", current_user->pseudo, message);
+            fflush(stdout);
+          } // END for
+        } // END if channel_id
+      } // END else
     } // END while
 
   printf("![System] : Connection from user %i stopped.\n", thread_args->user_id);
@@ -189,6 +210,7 @@ void users_add_user(struct users * list, int user_id, int thread_fd, char* pseud
   new_user->connection_date = date;
   new_user->next = NULL;
   new_user->pseudo = malloc(sizeof(char) * MSG_MAXLEN);
+  new_user->channel_id = 0;
 
   // pseudo filling
   strcpy(new_user->pseudo, pseudo);
@@ -228,6 +250,13 @@ char * users_get_user_pseudo(struct users * users, int user_id){
     users = users->next;
   }
   return users->pseudo;
+}
+
+int users_get_user_channelid(struct users * users, int user_id){
+  while (users->id!=user_id) {
+    users = users->next;
+  }
+  return users->channel_id;
 }
 
 void user_set_pseudo(struct users * users, int user_id, char * message){
@@ -341,3 +370,49 @@ void channels_add_channel(struct channel *channel_list, char *message){
   // linking the new user at the end of the channel list
   temp->next = new_channel;
 }
+
+
+void channel_add_usertomember(struct channel *channel, int user_id){
+  int i = 0;
+  while (channel->members[i] != 0){
+    i++;
+  }
+  channel->members[i] = user_id;
+}
+
+void user_set_channel(struct users *users_list, int user_id, int channel_id){
+  while (users_list!=NULL && users_list->id!=user_id){
+    users_list=users_list->next;
+  }
+  users_list->channel_id = channel_id;
+}
+
+
+void channel_add_user(struct channel * channels_list, struct users* users_list, int user_id, char *message){
+  // TODO : vérifier que le user n'est pas déjà dans un autre salon
+  struct channel *temp = channels_list->next;
+  remove_line_breaks(message);
+
+  while (temp!=NULL && strcmp(temp->name, message + strlen("/join "))){
+    temp = temp->next;
+  }
+
+  memset(message, 0, MSG_MAXLEN);
+  if (temp == NULL){
+    strcpy(message, "Error channel name !\n");
+  } else {
+    temp->nb_users_inside++;
+    channel_add_usertomember(temp, user_id);
+    user_set_channel(users_list, user_id, temp->id);
+    strcpy(message, "You have joined the channel !\n");
+  }
+}
+
+struct channel *channels_get_channel(struct channel* channels, int channel_id){
+  while(channels!=NULL && channels->id!=channel_id){
+    channels = channels->next;
+  }
+  return channels;
+}
+
+

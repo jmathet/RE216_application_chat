@@ -110,6 +110,8 @@ int parser(char * message) {
     return FUNC_MSGALL;
   else if(0 == strncmp("/create ", message, strlen("/create ")))
     return FUNC_CHANNEL_CREATE;
+  else if(0 == strncmp("/join ", message, strlen("/join ")))
+    return FUNC_CHANNEL_JOIN;
   else
     return FUNC_UNDEFINED;
 }

@@ -22,7 +22,7 @@ struct users{
   char *IP_addr;
   unsigned short port;
   char * connection_date;
-  //int channel;
+  int channel_id;
   struct users* next;
 };
 
@@ -77,6 +77,8 @@ void users_delete_user(struct users * list, int user_id_to_delete);
 /* Return the pseudo (char *) of the given user id. The user must exist. */
 char * users_get_user_pseudo(struct users * users, int user_id);
 
+int users_get_user_channelid(struct users * users, int user_id);
+
 /* Set the pseudo of the user corresponding to the id */
 void user_set_pseudo(struct users * users, int user_id, char * message);
 
@@ -98,6 +100,12 @@ void send_message_to_user(struct users *users, int dest_id, char *message);
 
 /* Add an channel at to the list of ALREADY EXISTING channels (at least system channel). Users is added by the right side. */
 void channels_add_channel(struct channel *channel_list, char *message);
+
+void channel_add_usertomember(struct channel *channel, int user_id);
+
+void channel_add_user(struct channel * channels_list, struct users* users_list, int user_id, char *message);
+
+struct channel *channels_get_channel(struct channel* channels, int channel_id);
 
 
 #endif
