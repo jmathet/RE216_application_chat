@@ -95,12 +95,49 @@ void send_line(int file_des, const void *str)
   } while(left > 0);
 }
 
+message * init_message() {
+  message * message = NULL;
+  message = malloc(sizeof(message));
+  if(NULL == message)
+    error("malloc");
+
+  message->source_pseudo=malloc(MSG_MAXLEN);
+  message->text=malloc(MSG_MAXLEN);
+  memset(message->source_pseudo, 0, MSG_MAXLEN);
+  memset(message->text, 0, MSG_MAXLEN);
+  return message;
+}
+
+void free_message(message * message) {
+  free(message->source_pseudo);
+  free(message->text);
+  free(message);
+}
+
+void flush_message(message * message) {
+  memset(message->source_pseudo, 0, MSG_MAXLEN);
+  memset(message->text, 0, MSG_MAXLEN);
+}
+
+void send_message(int file_des, char *source_pseudo, const void *text)
+{
+ send_line(file_des, source_pseudo);
+ send_line(file_des, text);
+}
+
+message * receive_message(int file_des) {
+  message * message = init_message();
+  read_line(file_des, message->source_pseudo);
+  read_line(file_des, message->text);
+  return message;
+}
+
 int parser(char * message) {
-  if(0 == strncmp("/quit ", message, strlen("/quit")))
+  if(0 == strncmp("/quit", message, strlen("/quit")))
     return FUNC_QUIT;
   else if(0 == strncmp("/nick ", message, strlen("/nick ")))
     return FUNC_NICK;
-  else if(0 == strncmp("/who\n", message, strlen("/who\n")))
+  else if(0 == strncmp("/who", message, strlen("/who")))
     return FUNC_WHO;
   else if(0 == strncmp("/whois ", message, strlen("/whois ")))
     return FUNC_WHOIS;

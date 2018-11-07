@@ -96,7 +96,7 @@ int users_get_id_by_pseudo(struct users *users, char *pseudo);
 
 /* Send a personnal message to an user identified by its id.
  * The dest_id MUST exist and be checked before. */
-void send_message_to_user(struct users *users, int dest_id, char *message);
+void send_message_to_user(struct users *users, int dest_id, char *text, char *source_pseudo);
 
 /* Add an channel at to the list of ALREADY EXISTING channels (at least system channel). Users is added by the right side. */
 void channels_add_channel(struct channel *channel_list, char *message);

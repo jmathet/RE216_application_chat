@@ -22,15 +22,14 @@ void init_client_addr(struct sockaddr_in *serv_addr, char *ip, int port) {
  void auth_user(int sock) {
   char message[MSG_MAXLEN];
   int finished = 0;
-
   do {
      printf("![System] : Please identify yourself by using '/nick <Your Name>'  ");
      //get user input
      memset(message, 0, MSG_MAXLEN);
      fgets(message, MSG_MAXLEN-1, stdin);
      if(parser(message) == FUNC_NICK && is_pseudo_correct(message+strlen("/nick "))) {
-       send_line(sock, message);
-       printf(">(me) : %s", message);
+       send_message(sock, "Guest", message);
+       printf(">[(me)] : %s", message);
        fflush(stdout);
        finished=1;
      }
@@ -49,34 +48,36 @@ void init_client_addr(struct sockaddr_in *serv_addr, char *ip, int port) {
 void * reception_handler(void * arg) {
   /* INITS */
   reception_arg * input = (reception_arg *) arg;
-  char message[MSG_MAXLEN];
+  struct message * received_message = init_message();
 
   /* RECEPTION AND DISPLAY OF MESSAGES */
   while(input->status != CLIENT_QUITTING) {
-    memset(message, 0, MSG_MAXLEN);
+    flush_message(received_message);
     pthread_mutex_lock(&input->sock_mutex);
-    read_line(input->sock, message);
-    printf("<[?] : %s", message);
+    received_message = receive_message(input->sock);
+    printf("<[%s] : %s", received_message->source_pseudo, received_message->text);
     fflush(stdout);
     pthread_mutex_unlock(&input->sock_mutex);
 
     // check if /quit
-    if(strncmp("/quit", message, 5) == 0)
+    if(strncmp("/quit", received_message->text, 5) == 0)
       input->status = CLIENT_QUITTING;
   }
+
+  free(received_message);
   return NULL;
 }
 
 void * communication_handler(void * arg) {
   /* INITS */
   communication_arg * input = (communication_arg *) arg;
-  char message[MSG_MAXLEN];
+  struct message * message;
 
   /* EMISSION OF MESSAGES */
   while(input->status != CLIENT_QUITTING) {
-    memset(message, 0, MSG_MAXLEN);
-    fgets(message, MSG_MAXLEN-1, stdin);
-    printf(">(me) : %s", message);
+    memset(message->text, 0, MSG_MAXLEN);
+    fgets(message->text, MSG_MAXLEN-1, stdin);
+    printf(">[(me)] : %s");
     fflush(stdout);
     pthread_mutex_lock(&input->sock_mutex);
     send_line(input->sock, message);

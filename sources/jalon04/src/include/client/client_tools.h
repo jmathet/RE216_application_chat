@@ -16,12 +16,14 @@ typedef struct reception_arg {
     int sock;
     int status;
     pthread_mutex_t sock_mutex;
+    char * pseudo;
 } reception_arg;
 
 typedef struct communication_arg {
     int sock;
     int status;
     pthread_mutex_t sock_mutex;
+    char * pseudo;
 } communication_arg;
 
 /* Modify specified sockaddr_in for the client side with specified port and IP

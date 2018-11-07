@@ -9,6 +9,7 @@ int main(int argc,char** argv)
     int sock;
     struct sockaddr_in host_addr;
     char host_ip[10];
+    char * pseudo;
     pthread_t reception_thread;
     pthread_t communication_thread;
     reception_arg * reception_input;
@@ -18,6 +19,7 @@ int main(int argc,char** argv)
     /* MALLOC */
     reception_input = malloc(sizeof(reception_arg));
     communication_input = malloc(sizeof(communication_arg));
+    pseudo = malloc(MSG_MAXLEN);
 
     /* ARGS CHECK */
     if (argc != 3)
@@ -53,6 +55,7 @@ int main(int argc,char** argv)
       reception_input->sock = sock;
       reception_input->status = status;
       reception_input->sock_mutex = sock_mutex;
+      reception_input->pseudo = pseudo;
       if(0 != pthread_create(&reception_thread, NULL, reception_handler, reception_input))
         error("pthread_create");
 
@@ -60,6 +63,7 @@ int main(int argc,char** argv)
       communication_input->sock = sock;
       communication_input->status = status;
       communication_input->sock_mutex = sock_mutex;
+      communication_input->pseudo = pseudo;
       if(0 != pthread_create(&communication_thread, NULL, communication_handler, communication_input))
         error("pthread_create");
 
@@ -72,6 +76,7 @@ int main(int argc,char** argv)
     }
 
     /* CLEAN UP */
+    free(pseudo);
     free(reception_input);
     free(communication_input);
     close(sock);
