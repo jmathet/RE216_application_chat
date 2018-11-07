@@ -162,7 +162,7 @@ void *connection_handler(void* thread_input)
         } // END switch
       } // END if command sent
       else {
-        int channel_id = users_get_user_channelid(thread_args->users_list, thread_args->user_id);
+        int channel_id = users_get_user_channel_id(thread_args->users_list, thread_args->user_id);
         if (channel_id != 0) {
           struct channel *channel = channels_get_channel(thread_args->channel_list, channel_id);
           for (int i = 0; i < channel->nb_users_inside; i++) {
@@ -203,6 +203,7 @@ void extract_command_args(char *message_pointer, char **pt_command_arg, char **p
   *pt_command_arg = strndup(message_pointer, i);
   *pt_command_text = strdup(message_pointer+i+1);
 }
+
 // TODO : mettre les fonctions de gestion des users dans un fichier
 void users_add_user(struct users * list, int user_id, int thread_fd, char* pseudo, char* IP_addr, unsigned short port, char * date){
   struct users * new_user = malloc(sizeof(struct users));
@@ -256,7 +257,7 @@ char * users_get_user_pseudo(struct users * users, int user_id){
   return users->pseudo;
 }
 
-int users_get_user_channelid(struct users * users, int user_id){
+int users_get_user_channel_id(struct users *users, int user_id){
   while (users->id!=user_id) {
     users = users->next;
   }
@@ -376,7 +377,7 @@ void channels_add_channel(struct channel *channel_list, char *message){
 }
 
 
-void channel_add_usertomember(struct channel *channel, int user_id){
+void channel_add_user_to_member(struct channel *channel, int user_id){
   int i = 0;
   while (channel->members[i] != 0){
     i++;
@@ -406,7 +407,7 @@ void channel_add_user(struct channel * channels_list, struct users* users_list, 
     strcpy(message, "Error channel name !\n");
   } else {
     temp->nb_users_inside++;
-    channel_add_usertomember(temp, user_id);
+    channel_add_user_to_member(temp, user_id);
     user_set_channel(users_list, user_id, temp->id);
     strcpy(message, "You have joined the channel !\n");
   }
@@ -432,6 +433,7 @@ void channel_delete_user(struct channel* channels_list,struct users* users_list,
   // Check if this user is the last one
   if (channel_temp->nb_users_inside==0){
     channels_delete_channel(channels_list, channel_temp->id);
+    // TODO message au dernier occupant (le salon a été détruit)
   }
 }
 
