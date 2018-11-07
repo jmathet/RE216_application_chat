@@ -333,8 +333,6 @@ void send_message_to_user(struct users *users, int dest_id, char *message) {
 int channels_find_name(struct channel *channel_list, char *name){
   struct channel * temp = channel_list->next;
   while (temp != NULL){
-    printf("%s\n", temp->name);
-    printf("strcmp = %d\n", strcmp(temp->name,name));
     if (strcmp(temp->name,name)==0){
       return 0;
     }
@@ -344,36 +342,29 @@ int channels_find_name(struct channel *channel_list, char *name){
 }
 
 void channels_add_channel(struct channel *channel_list, char *message){
-  char * name = malloc(sizeof(strlen(message) - strlen("/create ")));
   remove_line_breaks(message);
-  strcpy(name, message + strlen("/create "));
-  struct channel * new_channel = malloc(sizeof(struct channel));
-  struct channel * temp = channel_list;
-  while (temp->next != NULL){
-    temp = temp->next;
+  if (channels_find_name(channel_list, message+strlen("/create "))==0){ // case name already used
+    memset(message, 0, MSG_MAXLEN);
+    sprintf(message, "The channel name %s is already used ! Error creation channel\n", message+strlen("/create "));
   }
+  else{ // creation OK
+    while (channel_list->next!=NULL) { //find the last channel struct in the channels list
+      channel_list = channel_list->next;
+      printf("id_temp = %d // name_temp = %s\n", channel_list->id, channel_list->name);
+    }
+    // filling the structure
+    struct channel * new_channel = malloc(sizeof(struct channel));
+    new_channel->name = malloc(sizeof(strlen(message)-strlen("/create ")));
+    strcpy(new_channel->name, message+strlen("/create "));
+    new_channel->id = channel_list->id +1;
+    new_channel->nb_users_inside = 0;
+    new_channel->next = NULL;
 
-  //printf("my name = %s\n", name);
-  // filling channel structure
-  new_channel->id = temp->id +1;
-  strcpy(new_channel->name, name);
-  new_channel->nb_users_inside = 0;
-  new_channel->next = NULL;
+    channel_list->next = new_channel; // linking the new user
 
-  //printf("new name %s\n", new_channel->name);
-
-  memset(message, 0, MSG_MAXLEN);
-  /*if (channels_find_name(channel_list, new_channel->name)==0){ // case name already used
-    sprintf(message, "The channel name %s is already used ! Error creation channel\n", new_channel->name);
-    free(new_channel);
-  } else{ // creation OK
+    memset(message, 0, MSG_MAXLEN);
     sprintf(message, "The channel %s created !\n", new_channel->name);
-    // linking the new user at the end of the channel list
-    temp->next = new_channel;
-  }*/
-  sprintf(message, "The channel %s created !\n", new_channel->name);
-  // linking the new user at the end of the channel list
-  temp->next = new_channel;
+  }
 }
 
 
