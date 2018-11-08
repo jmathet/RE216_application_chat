@@ -12,6 +12,7 @@
 #include <errno.h>
 
 #define MSG_MAXLEN 1000
+#define NB_MAX_CLIENT 5
 
 enum SERVER_STATUS {
     SERVER_RUNNING,
@@ -42,6 +43,27 @@ typedef struct message {
   char * source_pseudo;
   char * text;
 } message ;
+
+struct users{
+    int id;
+    int associated_fd;
+    pthread_mutex_t communication_mutex;
+    char *pseudo;
+    char *IP_addr;
+    unsigned short port;
+    char * connection_date;
+    int channel_id;
+    struct users* next;
+};
+
+typedef struct channel {
+    int id;
+    char* name;
+    int members[NB_MAX_CLIENT];
+    int nb_users_inside;
+    struct channel* next;
+}channel;
+
 
 /* Interrupt program because of an error
  * Usage : error("error message"); */

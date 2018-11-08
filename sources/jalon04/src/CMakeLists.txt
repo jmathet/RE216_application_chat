@@ -24,6 +24,10 @@ SET(SRC_SERVER
     include/general_tools.c
     include/server/server_tools.h
     include/server/server_tools.c
+    include/server/server_tools_users.h
+    include/server/server_tools_users.c
+    include/server/server_tools_channels.h
+    include/server/server_tools_channels.c
 	)
 add_executable(RE216_JALON04_SERVER  ${SRC_SERVER})
 
