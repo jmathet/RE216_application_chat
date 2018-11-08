@@ -1,5 +1,20 @@
 #include "server_tools_channels.h"
 
+struct channel* channel_init(char *name, int id){
+  struct channel* new_channel;
+  new_channel = malloc(sizeof(struct channel));
+  new_channel->name = malloc(strlen(name));
+  strcpy(new_channel->name, name);
+  new_channel->id = id;
+
+  for (int i = 0; i < NB_MAX_CLIENT ; i++) { // TODO remplacer par un memset
+    new_channel->members[i] = 0;
+  }
+  new_channel->nb_users_inside = 0;
+  new_channel->next = NULL;
+
+  return new_channel;
+}
 
 int channels_find_name(struct channel *channel_list, char *name){
   struct channel * temp = channel_list->next;
@@ -31,17 +46,7 @@ void channels_add_channel(struct channel *channel_list, char *message){
       channel_list = channel_list->next;
 
     // filling the structure
-    // TODO fonctionnaliser
-    new_channel = malloc(sizeof(struct channel));
-    new_channel->name = malloc(strlen(channel_name));
-    strcpy(new_channel->name, channel_name);
-    new_channel->id = channel_list->id +1;
-
-    for (int i = 0; i < NB_MAX_CLIENT ; i++) { // TODO remplacer par un memset
-      new_channel->members[i] = 0;
-    }
-    new_channel->nb_users_inside = 0;
-    new_channel->next = NULL;
+    new_channel = channel_init(channel_name, channel_list->id +1);
 
     channel_list->next = new_channel; // linking the new user
 
