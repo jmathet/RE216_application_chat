@@ -1,7 +1,8 @@
 #ifndef SERVER_TOOLS_H_
 #define SERVER_TOOLS_H_
 
-#define NB_MAX_CLIENT 2
+#define NB_MAX_CLIENT 5
+// TODO : check utiliter variable
 
 #include <sys/types.h>
 #include <sys/socket.h>

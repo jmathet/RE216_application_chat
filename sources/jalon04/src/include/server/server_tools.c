@@ -166,7 +166,7 @@ void *connection_handler(void* thread_input)
         if (channel_id != 0) {
           struct channel *channel = channels_get_channel(thread_args->channel_list, channel_id);
           for (int i = 0; i < channel->nb_users_inside; i++) {
-            if (channel->members[i]!=current_user->id) { // In the channel, do not receive my message
+            if (channel->members[i]!=current_user->id && channel->members[i]!=0) { // In the channel, do not receive my message
               send_message_to_user(thread_args->users_list, channel->members[i], message);
               printf(">[%s] : %s", current_user->pseudo, message);
               fflush(stdout);
@@ -359,6 +359,9 @@ void channels_add_channel(struct channel *channel_list, char *message){
     new_channel->name = malloc(sizeof(strlen(message)-strlen("/create ")));
     strcpy(new_channel->name, message+strlen("/create "));
     new_channel->id = channel_list->id +1;
+    for (int i = 0; i < NB_MAX_CLIENT ; i++) {
+      new_channel->members[i] = 0;
+    }
     new_channel->nb_users_inside = 0;
     new_channel->next = NULL;
 

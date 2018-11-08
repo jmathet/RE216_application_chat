@@ -1,7 +1,7 @@
 #include "include/server/server_tools.h"
 #include "include/general_tools.h"
 
-#define USERS_NB_MAX 2
+#define USERS_NB_MAX 5
 
 int main(int argc, char** argv)
 {
