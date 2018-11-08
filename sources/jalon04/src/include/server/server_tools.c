@@ -397,7 +397,7 @@ void channel_add_user(struct channel * channels_list, struct users* users_list, 
 
   memset(message, 0, MSG_MAXLEN);
   if (temp == NULL){
-    strcpy(message, "Error channel name !\n");
+    strcpy(message, "Error channel name ! Please chose another name.\n");
   } else {
     temp->nb_users_inside++;
     channel_add_user_to_member(temp, user_id);
