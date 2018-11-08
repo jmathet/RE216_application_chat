@@ -1,4 +1,5 @@
 #include "server_tools.h"
+// TODO séparer server_tools_users et server_tools_channels
 
 void init_serv_addr(struct sockaddr_in *serv_addr, int port)
  {
@@ -144,19 +145,24 @@ void *connection_handler(void* thread_input)
         case FUNC_CHANNEL_CREATE:;
           channels_add_channel(thread_args->channel_list, message->text);
           if(0 != pthread_mutex_lock(&current_user->communication_mutex)) { error("pthread_mutex_lock"); }
-          send_line(thread_args->connection_fd, message->text);
+          send_message(thread_args->connection_fd, "Server", message->text);
           if(0 != pthread_mutex_unlock(&current_user->communication_mutex)) { error("pthread_mutex_unlock"); }
+          printf(">[%s] : %s", message->source_pseudo, message->text);
+          fflush(stdout);
           break;
 
         case FUNC_CHANNEL_JOIN:;
           channel_add_user(thread_args->channel_list,thread_args->users_list, thread_args->user_id, message->text);
           if(0 != pthread_mutex_lock(&current_user->communication_mutex)) { error("pthread_mutex_lock"); }
-          send_line(thread_args->connection_fd, message->text);
+          send_message(thread_args->connection_fd, "Server", message->text);
           if(0 != pthread_mutex_unlock(&current_user->communication_mutex)) { error("pthread_mutex_unlock"); }
+          printf(">[%s] : %s", message->source_pseudo, message->text);
+          fflush(stdout);
           break;
 
         case FUNC_CHANNEL_QUIT:;
-          channel_delete_user(thread_args->channel_list, thread_args->users_list, thread_args->user_id, message);
+          channel_delete_user(thread_args->channel_list, thread_args->users_list, thread_args->user_id, message->text);
+          // TODO send via send_message (avec mutexs)
           break;
 
         default:;
@@ -165,20 +171,20 @@ void *connection_handler(void* thread_input)
           break;
         } // END switch
       } // END if command sent
-      else {
-        int channel_id = users_get_user_channel_id(thread_args->users_list, thread_args->user_id);
-        if (channel_id != 0) {
-          struct channel *channel = channels_get_channel(thread_args->channel_list, channel_id);
-          for (int i = 0; i < channel->nb_users_inside; i++) {
-            if (channel->members[i]!=current_user->id && channel->members[i]!=0) { // In the channel, do not receive my message
-              send_message_to_user(thread_args->users_list, channel->members[i], message->text, message->source_pseudo);
-              printf(">[%s] : %s", current_user->pseudo, message->text);
-              fflush(stdout);
-            } // END if
-          } // END for
-        } // END if channel_id
-      } // END else
-    } // END while
+    else {
+      if (current_user->channel_id != 0) {
+        // TODO fonctionnaliser channel broadcast
+        struct channel *channel = channels_get_channel(thread_args->channel_list, current_user->channel_id);
+        for (int i = 0; i < channel->nb_users_inside; i++) {
+          if (channel->members[i]!=current_user->id && channel->members[i]!=0) { // In the channel, do not receive my message
+            send_message_to_user(thread_args->users_list, channel->members[i], message->text, message->source_pseudo);
+            printf(">[%s]<%s> : %s", current_user->pseudo, channel->name, message->text);
+            fflush(stdout);
+          } // END if
+        } // END for
+      } // END if channel_id
+    } // END else
+  } // END while
 
   printf("![System] : Connection from user %i stopped.\n", thread_args->user_id);
   fflush(stdout);
@@ -338,31 +344,40 @@ void send_message_to_user(struct users *users, int dest_id, char *text, char *so
 int channels_find_name(struct channel *channel_list, char *name){
   struct channel * temp = channel_list->next;
   while (temp != NULL){
-    if (strcmp(temp->name,name)==0){
+    if (strcmp(temp->name,name)==0)
       return 0;
-    }
     temp = temp->next;
   }
   return 1;
 }
 
 void channels_add_channel(struct channel *channel_list, char *message){
+  /* INITS */
+  char channel_name[MSG_MAXLEN];
+  struct channel * new_channel;
+
+  /* GET CHANNEL NAME */
   remove_line_breaks(message);
-  if (channels_find_name(channel_list, message+strlen("/create "))==0){ // case name already used
+  strcpy(channel_name, message+strlen("/create "));
+
+  /* CHECK IF NOT ALREADY USED */
+  if (channels_find_name(channel_list, message+strlen("/create "))==0) {
     memset(message, 0, MSG_MAXLEN);
-    sprintf(message, "The channel name %s is already used ! Error creation channel\n", message+strlen("/create "));
+    sprintf(message, "The channel name '%s' is already used ! Error during channel creation.\n", channel_name);
   }
-  else{ // creation OK
-    while (channel_list->next!=NULL) { //find the last channel struct in the channels list
+  else { // name available
+    // find the last channel struct in the channels list
+    while (channel_list->next!=NULL)
       channel_list = channel_list->next;
-      printf("id_temp = %d // name_temp = %s\n", channel_list->id, channel_list->name);
-    }
+
     // filling the structure
-    struct channel * new_channel = malloc(sizeof(struct channel));
-    new_channel->name = malloc(sizeof(strlen(message)-strlen("/create ")));
-    strcpy(new_channel->name, message+strlen("/create "));
+    // TODO fonctionnaliser
+    new_channel = malloc(sizeof(struct channel));
+    new_channel->name = malloc(strlen(channel_name));
+    strcpy(new_channel->name, channel_name);
     new_channel->id = channel_list->id +1;
-    for (int i = 0; i < NB_MAX_CLIENT ; i++) {
+
+    for (int i = 0; i < NB_MAX_CLIENT ; i++) { // TODO remplacer par un memset
       new_channel->members[i] = 0;
     }
     new_channel->nb_users_inside = 0;
@@ -371,12 +386,12 @@ void channels_add_channel(struct channel *channel_list, char *message){
     channel_list->next = new_channel; // linking the new user
 
     memset(message, 0, MSG_MAXLEN);
-    sprintf(message, "The channel %s created !\n", new_channel->name);
+    sprintf(message, "Channel %s created !\n", new_channel->name);
   }
 }
 
 
-void channel_add_user_to_member(struct channel *channel, int user_id){
+void channel_add_user_to_members(struct channel *channel, int user_id){
   int i = 0;
   while (channel->members[i] != 0){
     i++;
@@ -397,16 +412,18 @@ void channel_add_user(struct channel * channels_list, struct users* users_list, 
   struct channel *temp = channels_list->next;
   remove_line_breaks(message);
 
-  while (temp!=NULL && strcmp(temp->name, message + strlen("/join "))){
+  // find
+  // TODO réutiliser fonction de recherche
+  while (temp!=NULL && strcmp(temp->name, message + strlen("/join ")) != 0)
     temp = temp->next;
-  }
+
 
   memset(message, 0, MSG_MAXLEN);
-  if (temp == NULL){
-    strcpy(message, "Error channel name ! Please chose another name.\n");
-  } else {
-    temp->nb_users_inside++;
-    channel_add_user_to_member(temp, user_id);
+  if (temp == NULL)
+    strcpy(message, "The channel does not exist.\n");
+  else {
+    ++(temp->nb_users_inside);
+    channel_add_user_to_members(temp, user_id);
     user_set_channel(users_list, user_id, temp->id);
     strcpy(message, "You have joined the channel !\n");
   }

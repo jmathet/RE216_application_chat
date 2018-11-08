@@ -101,7 +101,8 @@ int main(int argc, char** argv)
 
     /* CLEAN UP */
     close(sock);
-    free(system_user);
+    free(system_user); // TODO check free de tous les mallocs au sein de system_user et system_channel
+    free(system_channel);
 
     return 0;
 }

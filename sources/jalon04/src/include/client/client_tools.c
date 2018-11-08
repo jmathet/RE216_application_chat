@@ -90,13 +90,11 @@ void * communication_handler(void * arg) {
       switch (parser(message->text)) {
         case FUNC_QUIT:;
           input->status = CLIENT_QUITTING;
-          printf("QUITTING");
           break;
         case FUNC_NICK:;
           memset(input->pseudo, 0, MSG_MAXLEN);
           remove_line_breaks(message->text);
           strcpy(input->pseudo, message->text + strlen("/nick "));
-          printf("NICKING");
           break;
       }
     }

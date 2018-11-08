@@ -103,7 +103,7 @@ void send_message_to_user(struct users *users, int dest_id, char *text, char *so
 void channels_add_channel(struct channel *channel_list, char *message);
 
 /* Add the user_id to the members listof the channel given */
-void channel_add_user_to_member(struct channel *channel, int user_id);
+void channel_add_user_to_members(struct channel *channel, int user_id);
 
 /* Add a user to the channel given in the message */
 void channel_add_user(struct channel * channels_list, struct users* users_list, int user_id, char *message);
