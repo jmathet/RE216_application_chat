@@ -38,6 +38,11 @@ enum FUNCTIONS {
     FUNC_CHANNEL_QUIT
 };
 
+typedef struct message {
+  char * source_pseudo;
+  char * text;
+} message ;
+
 /* Interrupt program because of an error
  * Usage : error("error message"); */
 void error(const char *msg);
@@ -61,6 +66,21 @@ void read_line(int file_des, void *str);
 /* Sending a line with length-detection (pseudo-protocol)
  * Usage : send_line(socket, buffer_to_send); */
 void send_line(int file_des, const void *str);
+
+/* Initialize a message structure with a full malloc & memset on all strings. */
+message * init_message();
+
+/* Free completly a message structure */
+void free_message(message * message);
+
+/* Perform a memset on message struct buffers */
+void flush_message(message * message);
+
+/* Send all the fields of a message structure with send_line function (with fiability and length check) */
+void send_message(int file_des, char *source_pseudo, const void *text);
+
+/* Receive content from send_message fonction, create and return a filled message structure */
+message * receive_message(int file_des);
 
 /* Return function number from the given message
  * Usage : function_number = parser(message); */

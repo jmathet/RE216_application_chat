@@ -22,6 +22,7 @@ typedef struct communication_arg {
     int sock;
     int status;
     pthread_mutex_t sock_mutex;
+    char * pseudo;
 } communication_arg;
 
 /* Modify specified sockaddr_in for the client side with specified port and IP
@@ -34,7 +35,7 @@ void do_connect(int sock, struct sockaddr_in host_addr);
 
 /* Ask the user to enter a pseudo and send in to the server
  * Usage : auth_user(socket); */
-void auth_user(int sock);
+void auth_user(int sock, char *pseudo);
 
 /* Check is the pseudo does not start by a space and has a non-null length
  * Usage : is_pseudo_correct(pseudo); -> return 1 if true 0 if false (pseudo-boolean) */
