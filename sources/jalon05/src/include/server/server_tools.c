@@ -214,7 +214,7 @@ void extract_command_args(char *message_pointer, char **pt_command_arg, char **p
   *pt_command_arg = strndup(message_pointer, i);
   *pt_command_text = strdup(message_pointer+i+1);
 }
-// TODO : mettre les fonctions de gestion des users dans un fichier
+
 void users_add_user(struct users * list, int user_id, int thread_fd, char* pseudo, char* IP_addr, unsigned short port, char * date){
   struct users * new_user = malloc(sizeof(struct users));
   // filling user structure

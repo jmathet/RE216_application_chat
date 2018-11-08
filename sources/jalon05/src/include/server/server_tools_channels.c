@@ -60,24 +60,27 @@ void channel_add_user_to_members(struct channel *channel, int user_id){
 }
 
 void channel_add_user(struct channel * channels_list, struct users* users_list, int user_id, char *message){
-  // TODO : vérifier que le user n'est pas déjà dans un autre salon
-  struct channel *temp = channels_list->next;
+  struct channel *channel_temp = channels_list->next;
   remove_line_breaks(message);
+  if (users_get_user_channel_id(users_list, user_id)==0) {
+    // find
+    while (channel_temp != NULL && strcmp(channel_temp->name, message + strlen("/join ")) != 0)
+      channel_temp = channel_temp->next;
 
-  // find
-  // TODO réutiliser fonction de recherche
-  while (temp!=NULL && strcmp(temp->name, message + strlen("/join ")) != 0)
-    temp = temp->next;
 
-
-  memset(message, 0, MSG_MAXLEN);
-  if (temp == NULL)
-    strcpy(message, "The channel does not exist.\n");
+    memset(message, 0, MSG_MAXLEN);
+    if (channel_temp == NULL)
+      strcpy(message, "The channel does not exist.\n");
+    else {
+      ++(channel_temp->nb_users_inside);
+      channel_add_user_to_members(channel_temp, user_id);
+      user_set_channel(users_list, user_id, channel_temp->id);
+      strcpy(message, "You have joined the channel !\n");
+    }
+  }
   else {
-    ++(temp->nb_users_inside);
-    channel_add_user_to_members(temp, user_id);
-    user_set_channel(users_list, user_id, temp->id);
-    strcpy(message, "You have joined the channel !\n");
+    memset(message, 0, MSG_MAXLEN);
+    strcpy(message, "You are already in a channel.\n");
   }
 }
 
