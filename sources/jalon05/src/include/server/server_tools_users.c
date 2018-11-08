@@ -1,23 +1,34 @@
 #include "server_tools_users.h"
 
-void users_delete_user(struct users * list, int user_id_to_delete){
-  while (list->next!=NULL) {
-    // check next user
-    if (user_id_to_delete==list->next->id) {
-      struct users * temp = list->next;
-      // unlink user
-      list->next=list->next->next;
-      free(temp->pseudo);
-      free(temp->connection_date);
-      free(temp->IP_addr);
-      free(temp);
-      // end user research
-      break;
-    }
-    else
-      list=list->next;
+void users_add_user(struct users * list, int user_id, int thread_fd, char* pseudo, char* IP_addr, unsigned short port, char * date){
+  struct users * new_user = malloc(sizeof(struct users));
+  // filling user structure
+  new_user->id = user_id;
+  new_user->associated_fd = thread_fd;
+  new_user->IP_addr = IP_addr;
+  new_user->port = port;
+  new_user->connection_date = date;
+  new_user->next = NULL;
+  new_user->pseudo = malloc(sizeof(char) * MSG_MAXLEN);
+  new_user->channel_id = 0;
+
+  // pseudo filling
+  strcpy(new_user->pseudo, pseudo);
+
+  // mutex init
+  pthread_mutex_init(&new_user->communication_mutex, NULL);
+
+  // finding the last user user of the list
+  struct users *temp;
+  temp=list;
+  while (temp->next!=NULL) {
+    temp=temp->next;
   }
+  // linking the new user
+  temp->next=new_user;
 }
+
+
 
 char * users_get_user_pseudo(struct users * users, int user_id){
   while (users->id!=user_id) {
@@ -97,4 +108,24 @@ void user_set_channel(struct users *users_list, int user_id, int channel_id){
     users_list=users_list->next;
   }
   users_list->channel_id = channel_id;
+}
+
+
+void users_delete_user(struct users * list, int user_id_to_delete){
+  while (list->next!=NULL) {
+    // check next user
+    if (user_id_to_delete==list->next->id) {
+      struct users * temp = list->next;
+      // unlink user
+      list->next=list->next->next;
+      free(temp->pseudo);
+      free(temp->connection_date);
+      free(temp->IP_addr);
+      free(temp);
+      // end user research
+      break;
+    }
+    else
+      list=list->next;
+  }
 }

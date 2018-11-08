@@ -215,36 +215,6 @@ void extract_command_args(char *message_pointer, char **pt_command_arg, char **p
   *pt_command_text = strdup(message_pointer+i+1);
 }
 
-void users_add_user(struct users * list, int user_id, int thread_fd, char* pseudo, char* IP_addr, unsigned short port, char * date){
-  struct users * new_user = malloc(sizeof(struct users));
-  // filling user structure
-  new_user->id = user_id;
-  new_user->associated_fd = thread_fd;
-  new_user->IP_addr = IP_addr;
-  new_user->port = port;
-  new_user->connection_date = date;
-  new_user->next = NULL;
-  new_user->pseudo = malloc(sizeof(char) * MSG_MAXLEN);
-  new_user->channel_id = 0;
-
-  // pseudo filling
-  strcpy(new_user->pseudo, pseudo);
-
-  // mutex init
-  pthread_mutex_init(&new_user->communication_mutex, NULL);
-
-  // finding the last user user of the list
-  struct users *temp;
-  temp=list;
-  while (temp->next!=NULL) {
-    temp=temp->next;
-  }
-  // linking the new user
-  temp->next=new_user;
-}
-
-
-
 void send_message_to_user(struct users *users, int dest_id, char *text, char *source_pseudo) {
   struct users * dest_user = users_get_user(users, dest_id);
   if(0 != pthread_mutex_lock(&dest_user->communication_mutex)) { error("pthread_mutex_lock"); }
