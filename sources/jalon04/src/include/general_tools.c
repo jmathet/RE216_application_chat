@@ -133,14 +133,14 @@ message * receive_message(int file_des) {
 }
 
 int parser(char * message) {
-  if(0 == strncmp("/quit", message, strlen("/quit")))
+  if(0 == strncmp("/quit\n", message, strlen("/quit")+1))
     return FUNC_QUIT;
   else if(0 == strncmp("/nick ", message, strlen("/nick ")))
     return FUNC_NICK;
-  else if(0 == strncmp("/who", message, strlen("/who")))
-    return FUNC_WHO;
   else if(0 == strncmp("/whois ", message, strlen("/whois ")))
     return FUNC_WHOIS;
+  else if(0 == strncmp("/who", message, strlen("/who")))
+    return FUNC_WHO;
   else if(0 == strncmp("/msg ", message, strlen("/msg ")))
     return FUNC_MSG;
   else if(0 == strncmp("/msgall ", message, strlen("/msgall ")))

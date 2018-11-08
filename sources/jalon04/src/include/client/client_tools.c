@@ -19,7 +19,7 @@ void init_client_addr(struct sockaddr_in *serv_addr, char *ip, int port) {
      error("connect");
  }
 
- void auth_user(int sock) {
+ void auth_user(int sock, char *pseudo) {
   char message[MSG_MAXLEN];
   int finished = 0;
   do {
@@ -29,11 +29,14 @@ void init_client_addr(struct sockaddr_in *serv_addr, char *ip, int port) {
      fgets(message, MSG_MAXLEN-1, stdin);
      if(parser(message) == FUNC_NICK && is_pseudo_correct(message+strlen("/nick "))) {
        send_message(sock, "Guest", message);
-       printf(">[(me)] : %s", message);
+       printf(">(me) : %s", message);
        fflush(stdout);
        finished=1;
      }
    } while(!finished);
+  memset(pseudo, 0, MSG_MAXLEN);
+  remove_line_breaks(message);
+  strcpy(pseudo, message + strlen("/nick "));
 }
 
  int is_pseudo_correct(char * pseudo) {
@@ -71,21 +74,34 @@ void * reception_handler(void * arg) {
 void * communication_handler(void * arg) {
   /* INITS */
   communication_arg * input = (communication_arg *) arg;
-  struct message * message;
+  struct message * message = init_message();
 
   /* EMISSION OF MESSAGES */
   while(input->status != CLIENT_QUITTING) {
     memset(message->text, 0, MSG_MAXLEN);
     fgets(message->text, MSG_MAXLEN-1, stdin);
-    printf(">[(me)] : %s");
+    printf(">(me) : %s", message->text);
     fflush(stdout);
     pthread_mutex_lock(&input->sock_mutex);
-    send_line(input->sock, message);
+    send_message(input->sock, input->pseudo, message->text);
     pthread_mutex_unlock(&input->sock_mutex);
 
-    // check if /quit
-    if(strncmp("/quit", message, 5) == 0)
-      input->status = CLIENT_QUITTING;
+    if(message->text[0] == '/') { // if a command is sent
+      switch (parser(message->text)) {
+        case FUNC_QUIT:;
+          input->status = CLIENT_QUITTING;
+          printf("QUITTING");
+          break;
+        case FUNC_NICK:;
+          memset(input->pseudo, 0, MSG_MAXLEN);
+          remove_line_breaks(message->text);
+          strcpy(input->pseudo, message->text + strlen("/nick "));
+          printf("NICKING");
+          break;
+      }
+    }
   }
+  /* CLEAN UP */
+  free(message);
   return NULL;
 }

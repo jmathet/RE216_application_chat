@@ -76,12 +76,12 @@ void *connection_handler(void* thread_input)
     /* FUNCTION HANDLER */
     if(message->text[0] == '/') { // if a command is sent
       switch (parser(message->text)) {
-        case FUNC_NICK:;
+        case FUNC_NICK:; // TODO bloquer utilisation de l'user "Server", "System", "me"
           user_set_pseudo(thread_args->users_list, thread_args->user_id, message->text);
           if(0 != pthread_mutex_lock(&current_user->communication_mutex)) { error("pthread_mutex_lock"); }
           send_message(thread_args->connection_fd, "Server", message->text);
           if(0 != pthread_mutex_unlock(&current_user->communication_mutex)) { error("pthread_mutex_unlock"); }
-          printf(">[%s] : %s", message->source_pseudo, message->text);
+          printf(">[%s] : %s", current_user->pseudo, message->text);
           fflush(stdout);
           break;
 
@@ -109,7 +109,10 @@ void *connection_handler(void* thread_input)
           temp_user = thread_args->users_list->next; // avoid user 0 "system"
           while (temp_user != NULL){
             dest_id = temp_user->id;
-            send_message_to_user(temp_user, dest_id, message->text + strlen("/msgall "), message->source_pseudo);
+            if(temp_user->id != current_user->id) {
+              send_message_to_user(temp_user, dest_id, message->text + strlen("/msgall "), message->source_pseudo);
+              printf(">[%s from %s (broadcast)] : %s", temp_user->pseudo, message->source_pseudo, message->text);
+            }
             temp_user = temp_user->next;
           }
           break;
@@ -117,16 +120,16 @@ void *connection_handler(void* thread_input)
         case FUNC_WHO:;
           users_get_pseudo_display(thread_args->users_list, message->text);
           if(0 != pthread_mutex_lock(&current_user->communication_mutex)) { error("pthread_mutex_lock"); }
-          send_line(thread_args->connection_fd, message->text);
+          send_message(thread_args->connection_fd, "Server", message->text);
           if(0 != pthread_mutex_unlock(&current_user->communication_mutex)) { error("pthread_mutex_unlock"); }
-          printf(">[%s] : %s", message->source_pseudo, message->text);
+          printf(">[%s] users list sent after a '/who' request.\n", message->source_pseudo);
           fflush(stdout);
           break;
 
         case FUNC_WHOIS:;
           users_get_info_user(thread_args->users_list, message->text);
           if(0 != pthread_mutex_lock(&current_user->communication_mutex)) { error("pthread_mutex_lock"); }
-          send_line(thread_args->connection_fd, message->text);
+          send_message(thread_args->connection_fd, "Server", message->text);
           if(0 != pthread_mutex_unlock(&current_user->communication_mutex)) { error("pthread_mutex_unlock"); }
           printf(">[%s] : %s", message->source_pseudo, message->text);
           fflush(stdout);
@@ -153,7 +156,7 @@ void *connection_handler(void* thread_input)
           break;
 
         default:;
-          printf("![System] : Invalid command from user %i.", current_user->id); // TODO informer l'user
+          printf("![System] : Invalid command from user %i.\n", current_user->id); // TODO informer l'user
           fflush(stdout);
           break;
         } // END switch
@@ -176,9 +179,8 @@ void *connection_handler(void* thread_input)
 
   /* CLEAN UP */
   free_message(message);
-  free(thread_args);
   close(thread_args->connection_fd); // closing the fd associated to the connection
-
+  free(thread_args);
   return NULL;
 }
 

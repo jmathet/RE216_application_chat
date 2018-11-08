@@ -48,14 +48,13 @@ int main(int argc,char** argv)
     else {
       /* AUTHENTIFICATION */
       status=CLIENT_NOT_LOGGED;
-      auth_user(sock);
+      auth_user(sock, pseudo);
       status=CLIENT_RUNNING;
 
       /* RECEPTION THREAD */
       reception_input->sock = sock;
       reception_input->status = status;
       reception_input->sock_mutex = sock_mutex;
-      reception_input->pseudo = pseudo;
       if(0 != pthread_create(&reception_thread, NULL, reception_handler, reception_input))
         error("pthread_create");
 
