@@ -166,11 +166,13 @@ void *connection_handler(void* thread_input)
         if (channel_id != 0) {
           struct channel *channel = channels_get_channel(thread_args->channel_list, channel_id);
           for (int i = 0; i < channel->nb_users_inside; i++) {
-            send_message_to_user(thread_args->users_list, channel->members[i], message);
-            printf(">[%s] : %s", current_user->pseudo, message);
-            fflush(stdout);
-          } // END for
-        } // END if channel_id
+            if (channel->members[i]!=current_user->id) { // In the channel, do not receive my message
+              send_message_to_user(thread_args->users_list, channel->members[i], message);
+              printf(">[%s] : %s", current_user->pseudo, message);
+              fflush(stdout);
+            } // END if
+          } // END for all members in my channel
+        } // END if channel_id != 0
       } // END else
     } // END while
 
