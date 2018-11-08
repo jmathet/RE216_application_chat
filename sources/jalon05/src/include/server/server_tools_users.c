@@ -8,6 +8,8 @@ void users_delete_user(struct users * list, int user_id_to_delete){
       // unlink user
       list->next=list->next->next;
       free(temp->pseudo);
+      free(temp->connection_date);
+      free(temp->IP_addr);
       free(temp);
       // end user research
       break;
