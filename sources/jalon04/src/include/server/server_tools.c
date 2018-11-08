@@ -419,6 +419,7 @@ struct channel *channels_get_channel(struct channel* channels, int channel_id){
 void channel_delete_user(struct channel* channels_list,struct users* users_list, int user_id, char * message){
   struct users *temp_user = users_get_user(users_list, user_id);
   struct channel * channel_temp = channels_get_channel(channels_list, temp_user->channel_id);
+  temp_user->channel_id = 0;
   // Delete the user from the members list
   for (int i = 0; i < NB_MAX_CLIENT ; i++) {
     if (channel_temp->members[i]==user_id)
