@@ -62,6 +62,10 @@ void user_set_pseudo(struct users * users, int user_id, char * message){
     memset(message, 0, MSG_MAXLEN);
     sprintf(message, "The pseudo %s is already used !\n", pseudo);
   }
+  else if (strcmp(pseudo, "Server")==0 || strcmp(pseudo, "System")==0 || strcmp(pseudo, "me")==0){
+    memset(message, 0, MSG_MAXLEN);
+    sprintf(message, "The pseudo %s can not be used !\n", pseudo);
+  }
   else {
     while (users->id != user_id)
       users = users->next;

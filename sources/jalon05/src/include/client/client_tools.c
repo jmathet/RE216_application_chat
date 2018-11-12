@@ -34,7 +34,7 @@ void init_client_addr(struct sockaddr_in *serv_addr, char *ip, int port) {
        struct message *received_message = receive_message(sock);
        if (strncmp(received_message->text, "OK ",strlen("OK "))==0){
          finished=1;
-          received_message->text = received_message->text + strlen("OK ");
+         received_message->text = received_message->text + strlen("OK ");
        }
        printf("<[%s] : %s", received_message->source_pseudo, received_message->text);
        fflush(stdout);
@@ -98,9 +98,15 @@ void * communication_handler(void * arg) {
           input->status = CLIENT_QUITTING;
           break;
         case FUNC_NICK:;
-          memset(input->pseudo, 0, MSG_MAXLEN);
-          remove_line_breaks(message->text);
-          strcpy(input->pseudo, message->text + strlen("/nick "));
+          struct message *received_message = receive_message(input->sock);
+          if (strncmp(received_message->text, "OK ",strlen("OK "))==0){
+            received_message->text = received_message->text + strlen("OK ");
+            memset(input->pseudo, 0, MSG_MAXLEN);
+            remove_line_breaks(message->text);
+            strcpy(input->pseudo, message->text + strlen("/nick "));
+          }
+          printf("<[%s] : %s", received_message->source_pseudo, received_message->text);
+          fflush(stdout);
           break;
       }
     }
