@@ -96,6 +96,22 @@ struct channel *channels_get_channel(struct channel* channels, int channel_id){
   return channels;
 }
 
+void channels_get_name_display(struct channel* channels_list, char* list){
+  if (channels_list->next != NULL) {
+    strcpy(list, "\nChannels are : \n");
+    while (channels_list != NULL) {
+      if (channels_list->id != 0) {
+        strcat(list, "\t -");
+        strcat(list, channels_list->name);
+        strcat(list, "\n");
+      }
+      channels_list = channels_list->next;
+    }
+  }
+  else
+    strcpy(list, "\nNo channel created.\n");
+}
+
 void channel_delete_user(struct channel* channels_list,struct users* users_list, int user_id, char * message){
   struct users *temp_user = users_get_user(users_list, user_id);
   struct channel * channel_temp = channels_get_channel(channels_list, temp_user->channel_id);

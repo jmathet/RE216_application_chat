@@ -149,6 +149,8 @@ int parser(char * message) {
     return FUNC_CHANNEL_CREATE;
   else if(0 == strncmp("/join ", message, strlen("/join ")))
     return FUNC_CHANNEL_JOIN;
+  else if(0 == strncmp("/channels ", message, strlen("/channels")))
+    return FUNC_CHANNEL_LIST;
   else if(0 == strncmp("/quit ", message, strlen("/quit ")))
     return FUNC_CHANNEL_QUIT;
   else

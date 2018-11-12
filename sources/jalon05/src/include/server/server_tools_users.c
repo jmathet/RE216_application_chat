@@ -57,7 +57,6 @@ void user_set_pseudo(struct users * users, int user_id, char * message){
   remove_line_breaks(message);
   char * pseudo = malloc(sizeof(message)-strlen("/nick "));
   strcpy(pseudo, message + strlen("/nick "));
-  // TODO : check if the pseudo is not already used
   if (users_find_name(users, pseudo)==0){
     memset(message, 0, MSG_MAXLEN);
     sprintf(message, "The pseudo %s is already used !\n", pseudo);

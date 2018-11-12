@@ -27,6 +27,9 @@ void channel_add_user(struct channel * channels_list, struct users* users_list, 
 /* Return the channel corresponding to the channel_id */
 struct channel *channels_get_channel(struct channel* channels, int channel_id);
 
+/* Return the list of channels to the server into list pointer */
+void channels_get_name_display(struct channel* channels_list, char* list);
+
 /* Remove a user from his channal based on his user_id */
 void channel_delete_user(struct channel* channels_list,struct users* users_list, int user_id, char * message);
 

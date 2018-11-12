@@ -76,7 +76,7 @@ void *connection_handler(void* thread_input)
     /* FUNCTION HANDLER */
     if(message->text[0] == '/') { // if a command is sent
       switch (parser(message->text)) {
-        case FUNC_NICK:; // TODO bloquer utilisation de l'user "Server", "System", "me"
+        case FUNC_NICK:;
           user_set_pseudo(thread_args->users_list, thread_args->user_id, message->text);
           if(0 != pthread_mutex_lock(&current_user->communication_mutex)) { error("pthread_mutex_lock"); }
           send_message(thread_args->connection_fd, "Server", message->text);
@@ -162,6 +162,16 @@ void *connection_handler(void* thread_input)
         case FUNC_CHANNEL_QUIT:;
           channel_delete_user(thread_args->channel_list, thread_args->users_list, thread_args->user_id, message->text);
           // TODO send via send_message (avec mutexs)
+          break;
+
+        case FUNC_CHANNEL_LIST:
+          printf("coucou\n");
+          channels_get_name_display(thread_args->channel_list, message->text);
+          if(0 != pthread_mutex_lock(&current_user->communication_mutex)) { error("pthread_mutex_lock"); }
+          send_message(thread_args->connection_fd, "Server", message->text);
+          if(0 != pthread_mutex_unlock(&current_user->communication_mutex)) { error("pthread_mutex_unlock"); }
+          printf(">[%s] : %s", message->source_pseudo, message->text);
+          fflush(stdout);
           break;
 
         default:;
