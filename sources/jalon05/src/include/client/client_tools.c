@@ -18,7 +18,7 @@ void init_client_addr(struct sockaddr_in *serv_addr, char *ip, int port) {
    if (connect_result == -1)
      error("connect");
  }
-
+//TODO check nécessité mutexs dans cette fonction
  void auth_user(int sock, char *pseudo) {
   char message[MSG_MAXLEN];
   int finished = 0;
@@ -31,7 +31,13 @@ void init_client_addr(struct sockaddr_in *serv_addr, char *ip, int port) {
        send_message(sock, "Guest", message);
        printf(">(me) : %s", message);
        fflush(stdout);
-       finished=1;
+       struct message *received_message = receive_message(sock);
+       if (strncmp(received_message->text, "OK ",strlen("OK "))==0){
+         finished=1;
+          received_message->text = received_message->text + strlen("OK ");
+       }
+       printf("<[%s] : %s", received_message->source_pseudo, received_message->text);
+       fflush(stdout);
      }
    } while(!finished);
   memset(pseudo, 0, MSG_MAXLEN);

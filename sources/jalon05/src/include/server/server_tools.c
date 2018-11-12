@@ -172,7 +172,6 @@ void *connection_handler(void* thread_input)
       } // END if command sent
     else {
       if (current_user->channel_id != 0) {
-        // TODO fonctionnaliser channel broadcast
         struct channel *channel = channels_get_channel(thread_args->channel_list, current_user->channel_id);
         for (int i = 0; i < channel->nb_users_inside; i++) {
           if (channel->members[i]!=current_user->id && channel->members[i]!=0) { // In the channel, do not receive my message

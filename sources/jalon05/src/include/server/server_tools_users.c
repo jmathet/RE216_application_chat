@@ -28,6 +28,15 @@ void users_add_user(struct users * list, int user_id, int thread_fd, char* pseud
   temp->next=new_user;
 }
 
+int users_find_name(struct users *users_list, char *pseudo){
+  struct users * temp = users_list->next;
+  while (temp != NULL){
+    if (strcmp(temp->pseudo,pseudo)==0)
+      return 0;
+    temp = temp->next;
+  }
+  return 1;
+}
 
 
 char * users_get_user_pseudo(struct users * users, int user_id){
@@ -45,20 +54,26 @@ int users_get_user_channel_id(struct users *users, int user_id){
 }
 
 void user_set_pseudo(struct users * users, int user_id, char * message){
-  // TODO : check if the pseudo is not already used
-  while (users->id!=user_id) {
-    users = users->next;
-  }
   remove_line_breaks(message);
-  if (strcmp(users->pseudo, "Guest")==0) { //initial pseudo
-    strcpy(users->pseudo, message + strlen("/nick "));
+  char * pseudo = malloc(sizeof(message)-strlen("/nick "));
+  strcpy(pseudo, message + strlen("/nick "));
+  // TODO : check if the pseudo is not already used
+  if (users_find_name(users, pseudo)==0){
     memset(message, 0, MSG_MAXLEN);
-    sprintf(message, "Welcome in the chat %s !\n", users->pseudo);
+    sprintf(message, "The pseudo %s is already used !\n", pseudo);
   }
-  else { //change of pseudo
-    strcpy(users->pseudo, message + strlen("/nick "));
-    memset(message, 0, MSG_MAXLEN);
-    sprintf(message, "Your pseudo has been changed to %s.\n", users->pseudo);
+  else {
+    while (users->id != user_id)
+      users = users->next;
+    if (strcmp(users->pseudo, "Guest") == 0) { //initial pseudo
+      strcpy(users->pseudo, pseudo);
+      memset(message, 0, MSG_MAXLEN);
+      sprintf(message, "OK Welcome in the chat %s !\n", users->pseudo);
+    } else { //change of pseudo
+      strcpy(users->pseudo, pseudo);
+      memset(message, 0, MSG_MAXLEN);
+      sprintf(message, "OK Your pseudo has been changed to %s.\n", users->pseudo);
+    }
   }
 }
 
