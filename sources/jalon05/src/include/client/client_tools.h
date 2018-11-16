@@ -16,6 +16,7 @@ typedef struct reception_arg {
     int sock;
     int status;
     pthread_mutex_t sock_mutex;
+    char * pseudo;
 } reception_arg;
 
 typedef struct communication_arg {

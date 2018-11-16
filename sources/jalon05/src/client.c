@@ -55,6 +55,7 @@ int main(int argc,char** argv)
       reception_input->sock = sock;
       reception_input->status = status;
       reception_input->sock_mutex = sock_mutex;
+      reception_input->pseudo = pseudo;
       if(0 != pthread_create(&reception_thread, NULL, reception_handler, reception_input))
         error("pthread_create");
 

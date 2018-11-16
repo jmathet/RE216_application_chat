@@ -57,6 +57,7 @@ void * reception_handler(void * arg) {
   /* INITS */
   reception_arg * input = (reception_arg *) arg;
   struct message * received_message = init_message();
+  struct message * message = init_message();
 
   /* RECEPTION AND DISPLAY OF MESSAGES */
   while(input->status != CLIENT_QUITTING) {
@@ -70,6 +71,18 @@ void * reception_handler(void * arg) {
     // check if /quit
     if(strncmp("/quit", received_message->text, 5) == 0)
       input->status = CLIENT_QUITTING;
+
+    if(strcmp(received_message->text, "A user wants you to accept the transfer of a file. Do you want to accept ?") == 0){
+      do{
+        memset(message->text, 0, MSG_MAXLEN);
+        fgets(message->text, MSG_MAXLEN-1, stdin);
+      } while (strncmp(message->text, "y",1)!=0 || strncmp(message->text, "n",1)!=0);
+      printf(">(me) : %s", message->text);
+      fflush(stdout);
+      pthread_mutex_lock(&input->sock_mutex);
+      send_message(input->sock, input->pseudo, message->text);
+      pthread_mutex_unlock(&input->sock_mutex);
+    }
   }
 
   free(received_message);
