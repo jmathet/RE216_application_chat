@@ -37,7 +37,8 @@ enum FUNCTIONS {
     FUNC_CHANNEL_CREATE,
     FUNC_CHANNEL_JOIN,
     FUNC_CHANNEL_LIST,
-    FUNC_CHANNEL_QUIT
+    FUNC_CHANNEL_QUIT,
+    FUNC_SEND_FILE
 };
 
 typedef struct message {

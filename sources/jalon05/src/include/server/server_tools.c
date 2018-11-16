@@ -165,13 +165,38 @@ void *connection_handler(void* thread_input)
           break;
 
         case FUNC_CHANNEL_LIST:
-          printf("coucou\n");
           channels_get_name_display(thread_args->channel_list, message->text);
           if(0 != pthread_mutex_lock(&current_user->communication_mutex)) { error("pthread_mutex_lock"); }
           send_message(thread_args->connection_fd, "Server", message->text);
           if(0 != pthread_mutex_unlock(&current_user->communication_mutex)) { error("pthread_mutex_unlock"); }
           printf(">[%s] : %s", message->source_pseudo, message->text);
           fflush(stdout);
+          break;
+
+        case FUNC_SEND_FILE:
+          if (check_args_send(message->text, thread_args->users_list)==1){
+            if(0 != pthread_mutex_lock(&current_user->communication_mutex)) { error("pthread_mutex_lock"); }
+            send_message(thread_args->connection_fd, "Server", message->text);
+            if(0 != pthread_mutex_unlock(&current_user->communication_mutex)) { error("pthread_mutex_unlock"); }
+            printf(">[%s] : %s", message->source_pseudo, message->text);
+            fflush(stdout);
+          }
+          else {
+            remove_line_breaks(message->text);
+            char *pseudo;
+            char *file;
+            pseudo = malloc(MSG_MAXLEN);
+            file = malloc(MSG_MAXLEN);
+            sscanf(message->text+strlen("/send "),"%s %s", pseudo, file);
+            memset(message->text, 0, MSG_MAXLEN);
+            strcpy(message->text, "Waiting for answer...");
+            if(0 != pthread_mutex_lock(&current_user->communication_mutex)) { error("pthread_mutex_lock"); }
+            send_message(thread_args->connection_fd, "Server", message->text);
+            if(0 != pthread_mutex_unlock(&current_user->communication_mutex)) { error("pthread_mutex_unlock"); }
+            printf(">[%s] : %s", message->source_pseudo, message->text);
+            fflush(stdout);
+            send_message_to_user(thread_args->users_list, users_get_id_by_pseudo(thread_args->users_list,pseudo), "A user wants you to accept the transfer of a file. Do you want to accept ? ", current_user->pseudo);
+          }
           break;
 
         default:;
@@ -232,3 +257,33 @@ void send_message_to_user(struct users *users, int dest_id, char *text, char *so
 }
 
 
+int file_exists(char *file)
+{
+// Return 1 if the file exists
+  struct stat s;
+
+  if (stat(file, &s) == 0)
+    return 1 ;
+  else
+    return 0 ;
+}
+
+int check_args_send(char *message, struct users* list_users){
+  remove_line_breaks(message);
+  char *pseudo;
+  char *file;
+  pseudo = malloc(MSG_MAXLEN);
+  file = malloc(MSG_MAXLEN);
+  sscanf(message+strlen("/send "),"%s %s", pseudo, file);
+  if (users_find_name(list_users, pseudo)!=0) { // Check existence of the user
+    memset(message, 0, MSG_MAXLEN);
+    strcpy(message, "Please chose an existing user.");
+    return 1;
+  }
+  else if (file_exists(file)){
+    memset(message, 0, MSG_MAXLEN);
+    strcpy(message, "Please chose an existing file.");
+    return 1;
+  }
+  return 0;
+}

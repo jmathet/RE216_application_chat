@@ -21,6 +21,9 @@ void users_add_user(struct users * list, int user_id, int thread_fd, char* pseud
 /* Remove an user from the users list based on his ID. Not applicable for system user */
 void users_delete_user(struct users * list, int user_id_to_delete);
 
+/* Return 0 if the pseudo is found. */
+int users_find_name(struct users *users_list, char *pseudo);
+
 /* Return the pseudo (char *) of the given user id. The user must exist. */
 char * users_get_user_pseudo(struct users * users, int user_id);
 

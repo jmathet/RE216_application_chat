@@ -11,6 +11,7 @@
 #include <pthread.h>
 #include <signal.h>
 #include <time.h>
+#include <sys/stat.h>
 
 #include "../general_tools.h"
 #include "server_tools_channels.h"
@@ -55,4 +56,7 @@ void extract_command_args(char *message_pointer, char **pt_command_arg, char **p
  * The dest_id MUST exist and be checked before. */
 void send_message_to_user(struct users *users, int dest_id, char *text, char *source_pseudo);
 
+int file_exists(char *file);
+
+int check_args_send(char *message, struct users* list_users);
 #endif
