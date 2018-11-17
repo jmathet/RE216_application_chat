@@ -72,17 +72,9 @@ void * reception_handler(void * arg) {
     if(strncmp("/quit", received_message->text, 5) == 0)
       input->status = CLIENT_QUITTING;
 
-    if(strcmp(received_message->text, "A user wants you to accept the transfer of a file. Do you want to accept ?") == 0){
-      do{
-        memset(message->text, 0, MSG_MAXLEN);
-        fgets(message->text, MSG_MAXLEN-1, stdin);
-      } while (strncmp(message->text, "y",1)!=0 || strncmp(message->text, "n",1)!=0);
-      printf(">(me) : %s", message->text);
-      fflush(stdout);
-      pthread_mutex_lock(&input->sock_mutex);
-      send_message(input->sock, input->pseudo, message->text);
-      pthread_mutex_unlock(&input->sock_mutex);
-    }
+    if(strcmp(received_message->text, "A user wants you to accept the transfer of a file. Do you want to accept ?") == 0)
+      printf("check need answer ok\n");
+      input->status = CLIENT_NEED_ANWSER;
   }
 
   free(received_message);
@@ -103,7 +95,19 @@ void * communication_handler(void * arg) {
     pthread_mutex_lock(&input->sock_mutex);
     send_message(input->sock, input->pseudo, message->text);
     pthread_mutex_unlock(&input->sock_mutex);
-
+    if(input->status == CLIENT_NEED_ANWSER){
+      do{
+        printf("need answer ! \n");
+        fflush(stdout);
+        memset(message->text, 0, MSG_MAXLEN);
+        fgets(message->text, MSG_MAXLEN-1, stdin);
+      } while (strncmp(message->text, "y",1)!=0 || strncmp(message->text, "n",1)!=0);
+      printf(">(me1) : %s", message->text);
+      fflush(stdout);
+      pthread_mutex_lock(&input->sock_mutex);
+      send_message(input->sock, input->pseudo, message->text);
+      pthread_mutex_unlock(&input->sock_mutex);
+    }
     if(message->text[0] == '/') { // if a command is sent
       switch (parser(message->text)) {
         case FUNC_QUIT:;
