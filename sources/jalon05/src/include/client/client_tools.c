@@ -28,7 +28,7 @@ void init_client_addr(struct sockaddr_in *serv_addr, char *ip, int port) {
      memset(message, 0, MSG_MAXLEN);
      fgets(message, MSG_MAXLEN-1, stdin);
      if(parser(message) == FUNC_NICK && is_pseudo_correct(message+strlen("/nick "))) {
-       send_message(sock, "Guest", message);
+       send_message(sock, "Guest", message, "");
        printf(">(me) : %s", message);
        fflush(stdout);
        struct message *received_message = receive_message(sock);
@@ -63,7 +63,10 @@ void * reception_handler(void * arg) {
     flush_message(received_message);
     pthread_mutex_lock(&input->sock_mutex);
     received_message = receive_message(input->sock);
-    printf("<[%s] : %s", received_message->source_pseudo, received_message->text);
+    if(received_message->source[0] == '\0') // if no source is specified
+      printf("<[%s] : %s", received_message->source_pseudo, received_message->text);
+    else
+      printf("<[%s]<%s> : %s", received_message->source_pseudo, received_message->source, received_message->text);
     fflush(stdout);
     pthread_mutex_unlock(&input->sock_mutex);
 
@@ -88,7 +91,7 @@ void * communication_handler(void * arg) {
     printf(">(me) : %s", message->text);
     fflush(stdout);
     pthread_mutex_lock(&input->sock_mutex);
-    send_message(input->sock, input->pseudo, message->text);
+    send_message(input->sock, input->pseudo, message->text, ""); // TODO peut etre a changer ?
     pthread_mutex_unlock(&input->sock_mutex);
 
     if(message->text[0] == '/') { // if a command is sent

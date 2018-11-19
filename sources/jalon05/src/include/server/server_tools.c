@@ -79,7 +79,7 @@ void *connection_handler(void* thread_input)
         case FUNC_NICK:;
           user_set_pseudo(thread_args->users_list, thread_args->user_id, message->text);
           if(0 != pthread_mutex_lock(&current_user->communication_mutex)) { error("pthread_mutex_lock"); }
-          send_message(thread_args->connection_fd, "Server", message->text);
+          send_message(thread_args->connection_fd, "Server", message->text, "");
           if(0 != pthread_mutex_unlock(&current_user->communication_mutex)) { error("pthread_mutex_unlock"); }
           printf(">[%s] : %s", current_user->pseudo, message->text);
           fflush(stdout);
@@ -91,12 +91,12 @@ void *connection_handler(void* thread_input)
           extract_command_args(message->text+strlen("/msg "), &command_arg, &command_text);
           dest_id = users_get_id_by_pseudo(thread_args->users_list, command_arg);
           if (0 != dest_id) {
-            send_message_to_user(thread_args->users_list, dest_id, command_text, message->source_pseudo);
+            send_message_to_user(thread_args->users_list, dest_id, command_text, message->source_pseudo, "", 1);
             printf(">[%s to %s] : %s", message->source_pseudo, command_arg, command_text);
           }
           else {
             if (0 != pthread_mutex_lock(&current_user->communication_mutex)) { error("pthread_mutex_lock"); }
-            send_message(thread_args->connection_fd, "Server", "Error, unknown user.\n");
+            send_message(thread_args->connection_fd, "Server", "Error, unknown user.\n", "");
             if (0 != pthread_mutex_unlock(&current_user->communication_mutex)) { error("pthread_mutex_unlock"); }
             printf("![Server] : %s tried to reach %s but the user does not exist.\n", message->source_pseudo, command_arg);
           }
@@ -110,7 +110,7 @@ void *connection_handler(void* thread_input)
           while (temp_user != NULL){
             dest_id = temp_user->id;
             if(temp_user->id != current_user->id) {
-              send_message_to_user(temp_user, dest_id, message->text + strlen("/msgall "), message->source_pseudo);
+              send_message_to_user(temp_user, dest_id, message->text + strlen("/msgall "), message->source_pseudo, "", 2);
               printf(">[%s from %s (broadcast)] : %s", temp_user->pseudo, message->source_pseudo, message->text);
             }
             temp_user = temp_user->next;
@@ -120,7 +120,7 @@ void *connection_handler(void* thread_input)
         case FUNC_WHO:;
           users_get_pseudo_display(thread_args->users_list, message->text);
           if(0 != pthread_mutex_lock(&current_user->communication_mutex)) { error("pthread_mutex_lock"); }
-          send_message(thread_args->connection_fd, "Server", message->text);
+          send_message(thread_args->connection_fd, "Server", message->text, "");
           if(0 != pthread_mutex_unlock(&current_user->communication_mutex)) { error("pthread_mutex_unlock"); }
           printf(">[%s] users list sent after a '/who' request.\n", message->source_pseudo);
           fflush(stdout);
@@ -129,7 +129,7 @@ void *connection_handler(void* thread_input)
         case FUNC_WHOIS:;
           users_get_info_user(thread_args->users_list, message->text);
           if(0 != pthread_mutex_lock(&current_user->communication_mutex)) { error("pthread_mutex_lock"); }
-          send_message(thread_args->connection_fd, "Server", message->text);
+          send_message(thread_args->connection_fd, "Server", message->text, "");
           if(0 != pthread_mutex_unlock(&current_user->communication_mutex)) { error("pthread_mutex_unlock"); }
           printf(">[%s] : %s", message->source_pseudo, message->text);
           fflush(stdout);
@@ -144,7 +144,7 @@ void *connection_handler(void* thread_input)
         case FUNC_CHANNEL_CREATE:;
           channels_add_channel(thread_args->channel_list, message->text);
           if(0 != pthread_mutex_lock(&current_user->communication_mutex)) { error("pthread_mutex_lock"); }
-          send_message(thread_args->connection_fd, "Server", message->text);
+          send_message(thread_args->connection_fd, "Server", message->text, "");
           if(0 != pthread_mutex_unlock(&current_user->communication_mutex)) { error("pthread_mutex_unlock"); }
           printf(">[%s] : %s", message->source_pseudo, message->text);
           fflush(stdout);
@@ -153,7 +153,7 @@ void *connection_handler(void* thread_input)
         case FUNC_CHANNEL_JOIN:;
           channel_add_user(thread_args->channel_list,thread_args->users_list, thread_args->user_id, message->text);
           if(0 != pthread_mutex_lock(&current_user->communication_mutex)) { error("pthread_mutex_lock"); }
-          send_message(thread_args->connection_fd, "Server", message->text);
+          send_message(thread_args->connection_fd, "Server", message->text, "");
           if(0 != pthread_mutex_unlock(&current_user->communication_mutex)) { error("pthread_mutex_unlock"); }
           printf(">[%s] : %s", message->source_pseudo, message->text);
           fflush(stdout);
@@ -168,7 +168,7 @@ void *connection_handler(void* thread_input)
           printf("coucou\n");
           channels_get_name_display(thread_args->channel_list, message->text);
           if(0 != pthread_mutex_lock(&current_user->communication_mutex)) { error("pthread_mutex_lock"); }
-          send_message(thread_args->connection_fd, "Server", message->text);
+          send_message(thread_args->connection_fd, "Server", message->text, "");
           if(0 != pthread_mutex_unlock(&current_user->communication_mutex)) { error("pthread_mutex_unlock"); }
           printf(">[%s] : %s", message->source_pseudo, message->text);
           fflush(stdout);
@@ -185,7 +185,7 @@ void *connection_handler(void* thread_input)
         struct channel *channel = channels_get_channel(thread_args->channel_list, current_user->channel_id);
         for (int i = 0; i < channel->nb_users_inside; i++) {
           if (channel->members[i]!=current_user->id && channel->members[i]!=0) { // In the channel, do not receive my message
-            send_message_to_user(thread_args->users_list, channel->members[i], message->text, message->source_pseudo);
+            send_message_to_user(thread_args->users_list, channel->members[i], message->text, message->source_pseudo, channel->name, 3);
             printf(">[%s]<%s> : %s", current_user->pseudo, channel->name, message->text);
             fflush(stdout);
           } // END if
@@ -224,11 +224,23 @@ void extract_command_args(char *message_pointer, char **pt_command_arg, char **p
   *pt_command_text = strdup(message_pointer+i+1);
 }
 
-void send_message_to_user(struct users *users, int dest_id, char *text, char *source_pseudo) {
+void send_message_to_user(struct users *users, int dest_id, char *text, char *source_pseudo, char *source, short mode) {
+  /* Mode : 0=ignore, 1=PM, 2=broadcast, 3=channel */
   struct users * dest_user = users_get_user(users, dest_id);
+  char * source_to_send = malloc(MSG_MAXLEN);
+  switch (mode) {
+    case 1: // PM
+      sprintf(source_to_send, "PM");
+      break;
+    case 2: // broadcast
+      sprintf(source_to_send, "broadcast");
+      break;
+    case 3: // channel
+      sprintf(source_to_send, "channel '%s'", source);
+      break;
+  }
   if(0 != pthread_mutex_lock(&dest_user->communication_mutex)) { error("pthread_mutex_lock"); }
-  send_message(dest_user->associated_fd, source_pseudo, text);
+  send_message(dest_user->associated_fd, source_pseudo, text, source_to_send);
   if(0 != pthread_mutex_unlock(&dest_user->communication_mutex)) { error("pthread_mutex_unlock"); }
+  free(source_to_send);
 }
-
-

@@ -53,6 +53,6 @@ void extract_command_args(char *message_pointer, char **pt_command_arg, char **p
 
 /* Send a personnal message to an user identified by its id.
  * The dest_id MUST exist and be checked before. */
-void send_message_to_user(struct users *users, int dest_id, char *text, char *source_pseudo);
+void send_message_to_user(struct users *users, int dest_id, char *text, char *source_pseudo, char *source, short mode);
 
 #endif

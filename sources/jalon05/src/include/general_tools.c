@@ -102,33 +102,38 @@ message * init_message() {
     error("malloc");
 
   message->source_pseudo=malloc(MSG_MAXLEN);
+  message->source=malloc(MSG_MAXLEN);
   message->text=malloc(MSG_MAXLEN);
-  memset(message->source_pseudo, 0, MSG_MAXLEN);
-  memset(message->text, 0, MSG_MAXLEN);
+
+  flush_message(message);
   return message;
 }
 
 void free_message(message * message) {
   free(message->source_pseudo);
+  free(message->source);
   free(message->text);
   free(message);
 }
 
 void flush_message(message * message) {
   memset(message->source_pseudo, 0, MSG_MAXLEN);
+  memset(message->source, 0, MSG_MAXLEN);
   memset(message->text, 0, MSG_MAXLEN);
 }
 
-void send_message(int file_des, char *source_pseudo, const void *text)
+void send_message(int file_des, char *source_pseudo, const void *text, char *source)
 {
  send_line(file_des, source_pseudo);
  send_line(file_des, text);
+ send_line(file_des, source);
 }
 
 message * receive_message(int file_des) {
   message * message = init_message();
   read_line(file_des, message->source_pseudo);
   read_line(file_des, message->text);
+  read_line(file_des, message->source);
   return message;
 }
 

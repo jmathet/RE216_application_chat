@@ -42,6 +42,7 @@ enum FUNCTIONS {
 
 typedef struct message {
   char * source_pseudo;
+  char * source;
   char * text;
 } message ;
 
@@ -100,7 +101,7 @@ void free_message(message * message);
 void flush_message(message * message);
 
 /* Send all the fields of a message structure with send_line function (with fiability and length check) */
-void send_message(int file_des, char *source_pseudo, const void *text);
+void send_message(int file_des, char *source_pseudo, const void *text, char *source);
 
 /* Receive content from send_message fonction, create and return a filled message structure */
 message * receive_message(int file_des);
