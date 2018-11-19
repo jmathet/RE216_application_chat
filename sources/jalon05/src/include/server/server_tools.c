@@ -181,6 +181,9 @@ void *connection_handler(void* thread_input)
           break;
 
         default:;
+          if(0 != pthread_mutex_lock(&current_user->communication_mutex)) { error("pthread_mutex_lock"); }
+          send_message(thread_args->connection_fd, "Server", "The command does not exist !", "");
+          if(0 != pthread_mutex_unlock(&current_user->communication_mutex)) { error("pthread_mutex_unlock"); }
           printf("![System] : Invalid command from user %i.\n", current_user->id); // TODO informer l'user
           fflush(stdout);
           break;
