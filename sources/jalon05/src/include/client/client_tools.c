@@ -117,3 +117,46 @@ void * communication_handler(void * arg) {
   free(message);
   return NULL;
 }
+
+void * file_emission_handler(void * arg){
+  /* SOCKET SET-UP declarations */
+  struct sockaddr_in serv_addr;
+  char * host_ip;
+  host_ip = malloc(LENGTH_IP_ADDR);
+  strncpy(host_ip, argv[2], 10);
+  int host_port = atoi(argv[1]);
+  int sock_initialisation;
+
+  /* SOCKET SET-UP building */
+  sock_initialisation = do_socket();
+  init_client_addr(&serv_addr, host_ip, host_port);
+  do_connect(sock_initialisation, serv_addr);
+
+
+  return NULL;
+}
+
+void * file_reception_handler(void * arg){
+  int sock_fd;
+  int port = 0;
+  struct sockaddr_in *serv_addr
+
+  sock_fd = do_socket();
+  init_serv_addr(serv_addr, port);
+  do_bind(sock_fd, *serv_addr);
+
+  socklen_t len = sizeof(struct sockaddr_in);
+  getsockname(sock_fd, (struct sockaddr *) serv_addr, &len);
+  port = ntohs(serv_addr->sin_port);
+
+  printf("%s//%d\n", inet_ntoa(serv_addr->sin_addr), port);
+
+  do_listen(sock_fd, 1);
+
+  socklen_t addrlen = sizeof(struct sockaddr);
+  int fd_sock_init = do_accept(sock, (struct sockaddr*)&client_addr, &addrlen);
+  printf("connexion réussi %d\n", fd_sock_init);
+
+
+  return NULL;
+}

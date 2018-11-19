@@ -19,6 +19,37 @@ int do_socket()
   return file_des;
 }
 
+void init_serv_addr(struct sockaddr_in *serv_addr, int port)
+{
+  // clean structure
+  memset(serv_addr, 0, sizeof(*serv_addr));
+  serv_addr->sin_family = AF_INET; // IP V4
+  serv_addr->sin_port = htons(port); // specified port in args
+  serv_addr->sin_addr.s_addr = INADDR_ANY;
+}
+
+void do_bind(int socket, struct sockaddr_in addr_in)
+{
+  int bind_result = bind(socket, (struct sockaddr *) &addr_in, sizeof(addr_in));
+  if (-1 == bind_result)
+    error("bind");
+}
+
+void do_listen(int socket, int nb_max)
+{
+  int listen_result = listen(socket, nb_max);
+  if (-1 == listen_result)
+    error("listen");
+}
+
+int do_accept(int socket, struct sockaddr *addr, socklen_t* addrlen)
+{
+  int file_des_new = accept(socket, addr, addrlen);
+  if(-1 == file_des_new)
+    error("accept");
+  return file_des_new;
+}
+
 void send_int(int file_des, int to_send) {
   // Inspired by garlix's answer from https://stackoverflow.com/questions/9140409/transfer-integer-over-a-socket-in-c
   int32_t converted_to_send = (int)to_send; // convert the length in a generic type independant from infrastucture for emission over socket

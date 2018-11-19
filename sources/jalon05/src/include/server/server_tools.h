@@ -28,18 +28,6 @@ typedef struct thread_arg {
   volatile int * pt_status;
 } thread_arg;
 
-/* Modify specified sockaddr_in for the server side with specified port */
-void init_serv_addr(struct sockaddr_in *serv_addr, int port);
-
-/* Perform a bind on specified socket */
-void do_bind(int socket, struct sockaddr_in addr_in);
-
-/* Switch specified socket in the listen state */
-void do_listen(int socket, int nb_max);
-
-/* Accept a connection with the specified socket and return the file des from accepted socket*/
-int do_accept(int socket, struct sockaddr *addr, socklen_t* addrlen);
-
 /* Thread hanlder when accepting a new incoming connection from a client */
 void *connection_handler(void* sock);
 

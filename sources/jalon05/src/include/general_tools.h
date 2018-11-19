@@ -75,6 +75,18 @@ void error(const char *msg);
  * Usage : socket = do_sock(); */
 int do_socket();
 
+/* Modify specified sockaddr_in for the server side with specified port */
+void init_serv_addr(struct sockaddr_in *serv_addr, int port);
+
+/* Perform a bind on specified socket */
+void do_bind(int socket, struct sockaddr_in addr_in);
+
+/* Switch specified socket in the listen state */
+void do_listen(int socket, int nb_max);
+
+/* Accept a connection with the specified socket and return the file des from accepted socket*/
+int do_accept(int socket, struct sockaddr *addr, socklen_t* addrlen);
+
 /* Send an integer into the socket, with conversion to int32_t for cross-compatibility
  * Usage : send_int(socket, 1); */
 void send_int(int file_des, int to_send);
