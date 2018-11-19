@@ -138,6 +138,8 @@ void *connection_handler(void* thread_input)
         case FUNC_QUIT:; // TODO fix - problème au niveau de la terminaison des threads
           -- *(thread_args->pt_nb_conn); // decrease number of nb_total_connections
           client_status = CLIENT_QUITTING;
+          if (current_user->channel_id!=0)
+            channel_delete_user(thread_args->channel_list, thread_args->users_list, thread_args->user_id, message->text);
           users_delete_user(thread_args->users_list, thread_args->user_id);
           break;
 
@@ -161,7 +163,11 @@ void *connection_handler(void* thread_input)
 
         case FUNC_CHANNEL_QUIT:;
           channel_delete_user(thread_args->channel_list, thread_args->users_list, thread_args->user_id, message->text);
-          // TODO send via send_message (avec mutexs)
+          if(0 != pthread_mutex_lock(&current_user->communication_mutex)) { error("pthread_mutex_lock"); }
+          send_message(thread_args->connection_fd, "Server", message->text, "");
+          if(0 != pthread_mutex_unlock(&current_user->communication_mutex)) { error("pthread_mutex_unlock"); }
+          printf(">[%s] : %s", message->source_pseudo, message->text);
+          fflush(stdout);
           break;
 
         case FUNC_CHANNEL_LIST:

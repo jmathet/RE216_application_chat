@@ -5,7 +5,7 @@ void users_add_user(struct users * list, int user_id, int thread_fd, char* pseud
   // filling user structure
   new_user->id = user_id;
   new_user->associated_fd = thread_fd;
-  new_user->IP_addr = IP_addr;
+  new_user->IP_addr = malloc(sizeof(char)*10);
   new_user->port = port;
   new_user->connection_date = date;
   new_user->next = NULL;
@@ -14,6 +14,9 @@ void users_add_user(struct users * list, int user_id, int thread_fd, char* pseud
 
   // pseudo filling
   strcpy(new_user->pseudo, pseudo);
+
+  // IP_addr filling
+  strcpy(new_user->IP_addr, IP_addr);
 
   // mutex init
   pthread_mutex_init(&new_user->communication_mutex, NULL);
@@ -137,7 +140,6 @@ void users_delete_user(struct users * list, int user_id_to_delete){
       // unlink user
       list->next=list->next->next;
       free(temp->pseudo);
-      free(temp->connection_date);
       free(temp->IP_addr);
       free(temp);
       // end user research

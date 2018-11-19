@@ -121,12 +121,15 @@ void channel_delete_user(struct channel* channels_list,struct users* users_list,
     if (channel_temp->members[i]==user_id)
       channel_temp->members[i]=0;
   }
+  memset(message, 0, MSG_MAXLEN);
+  strcpy(message,"You leave the channel.\n");
   // Decrease the members counter
   channel_temp->nb_users_inside--;
   // Check if this user is the last one
   if (channel_temp->nb_users_inside==0){
     channels_delete_channel(channels_list, channel_temp->id);
-    send_message(temp_user->associated_fd, "Server", "Channel has been destroyed.\n", "");
+    memset(message, 0, MSG_MAXLEN);
+    strcpy(message,"Channel has been destroyed.\n");
   }
 }
 
