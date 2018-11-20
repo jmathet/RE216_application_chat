@@ -118,29 +118,39 @@ void * communication_handler(void * arg) {
   return NULL;
 }
 
-void * file_emission_handler(void * arg){
+void * file_communication_handler(void * arg){
+  /* INITS */
+  file_communication_arg * input = (file_communication_arg *) arg;
+
   /* SOCKET SET-UP declarations */
   struct sockaddr_in serv_addr;
-  char * host_ip;
-  host_ip = malloc(LENGTH_IP_ADDR);
-  strncpy(host_ip, argv[2], 10);
-  int host_port = atoi(argv[1]);
+  char * host_reception_ip;
+  host_reception_ip = malloc(LENGTH_IP_ADDR);
+  strncpy(host_reception_ip, input->IP, 10);
+  int host_reception_port = input->port;
   int sock_initialisation;
 
   /* SOCKET SET-UP building */
   sock_initialisation = do_socket();
-  init_client_addr(&serv_addr, host_ip, host_port);
+  init_client_addr(&serv_addr, host_reception_ip, host_reception_port);
   do_connect(sock_initialisation, serv_addr);
-
+  printf("Connexion pour transfert de fichier OK");
+  fflush(stdout);
 
   return NULL;
 }
 
 void * file_reception_handler(void * arg){
+  /* INITS */
+  file_reception_arg * input = (file_reception_arg *) arg;
+
+  /* SOCKET SET-UP declarations */
   int sock_fd;
   int port = 0;
-  struct sockaddr_in *serv_addr
+  struct sockaddr_in *serv_addr;
+  struct sockaddr_in client_addr;
 
+  /* SOCKET SET-UP building */
   sock_fd = do_socket();
   init_serv_addr(serv_addr, port);
   do_bind(sock_fd, *serv_addr);
@@ -154,7 +164,7 @@ void * file_reception_handler(void * arg){
   do_listen(sock_fd, 1);
 
   socklen_t addrlen = sizeof(struct sockaddr);
-  int fd_sock_init = do_accept(sock, (struct sockaddr*)&client_addr, &addrlen);
+  int fd_sock_init = do_accept(sock_fd, (struct sockaddr*)&client_addr, &addrlen);
   printf("connexion réussi %d\n", fd_sock_init);
 
 

@@ -12,13 +12,19 @@ int main(int argc,char** argv)
     char * pseudo;
     pthread_t reception_thread;
     pthread_t communication_thread;
+    pthread_t file_reception_thread;
+    pthread_t file_emission_thread;
     reception_arg * reception_input;
     communication_arg * communication_input;
+    file_reception_arg * file_reception_arg;
+    file_communication_arg * file_communication_arg;
     pthread_mutex_t sock_mutex = PTHREAD_MUTEX_INITIALIZER;
 
     /* MALLOC */
     reception_input = malloc(sizeof(reception_arg));
     communication_input = malloc(sizeof(communication_arg));
+    file_reception_arg = malloc(sizeof(file_reception_arg));
+    file_communication_arg = malloc(sizeof(file_communication_arg));
     pseudo = malloc(MSG_MAXLEN);
 
     /* ARGS CHECK */
@@ -71,6 +77,7 @@ int main(int argc,char** argv)
         error("pthread_join");
       if(0 != pthread_join(communication_thread, NULL))
         error("pthread_join");
+      // TODO
       printf("![System] : Quiting.\n");
     }
 

@@ -12,6 +12,8 @@
 #include <pthread.h>
 #include "../general_tools.h"
 
+#define LENGTH_IP_ADDR 10
+
 typedef struct reception_arg {
     int sock;
     int status;
@@ -24,6 +26,19 @@ typedef struct communication_arg {
     pthread_mutex_t sock_mutex;
     char * pseudo;
 } communication_arg;
+
+typedef struct file_reception_arg {
+    int sock;
+    int status;
+} file_reception_arg;
+
+typedef struct file_communication_arg {
+    int sock;
+    int status;
+    int port;
+    char * IP;
+    //char * pseudo;
+} file_communication_arg;
 
 /* Modify specified sockaddr_in for the client side with specified port and IP
  * Usage : init_client_addr(pointer_on_already_allocated_struct, ip, port); */
@@ -46,5 +61,11 @@ void * reception_handler(void * arg);
 
 /* Thread handler for sending messages given by the users through the socket */
 void * communication_handler(void * arg);
+
+/* Thread handler for sending files */
+void * file_communication_handler(void * arg);
+
+/* Thread handler for receiving files */
+void * file_reception_handler(void * arg);
 
 #endif
