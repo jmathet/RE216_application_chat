@@ -92,7 +92,6 @@ void read_line(int file_des, void *str)
 {
   // Reading the length of the string to receive
   int left = read_int(file_des);
-
   // Receive the string
   int read_count = 0;
   do {
@@ -189,6 +188,8 @@ int parser(char * message) {
     return FUNC_CHANNEL_LIST;
   else if(0 == strncmp("/quit ", message, strlen("/quit ")))
     return FUNC_CHANNEL_QUIT;
+  else if(0 == strncmp("/send ", message, strlen("/send ")))
+    return FUNC_SEND;
   else
     return FUNC_UNDEFINED;
 }

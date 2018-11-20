@@ -63,6 +63,23 @@ void * reception_handler(void * arg) {
     flush_message(received_message);
     pthread_mutex_lock(&input->sock_mutex);
     received_message = receive_message(input->sock);
+
+    if(strncmp(received_message->text, "/send ", strlen("/send ")) == 0)
+      input->status == CLIENT_WAITING_ANSWER;
+
+    while(input->status == CLIENT_WAITING_ANSWER) {
+      printf("<[%s] wants to send you the file XXX. Do you accept ? Reply with Y/N.\n", received_message->source_pseudo);
+      fflush(stdout);
+      memset(received_message->text, 0, MSG_MAXLEN);
+      fgets(received_message->text, MSG_MAXLEN-1, stdin);
+      if(strncmp("Y", received_message->text, 1)==0 || strncmp("N", received_message->text, 1)==0) {
+        send_message(input->sock, received_message->text, "", "");
+        input->status = CLIENT_RUNNING;
+      }
+      flush_message(received_message);
+      received_message = receive_message(input->sock);
+    }
+
     if(received_message->source[0] == '\0') // if no source is specified
       printf("<[%s] : %s", received_message->source_pseudo, received_message->text);
     else

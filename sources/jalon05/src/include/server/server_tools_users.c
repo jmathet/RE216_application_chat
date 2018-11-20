@@ -11,6 +11,7 @@ void users_add_user(struct users * list, int user_id, int thread_fd, char* pseud
   new_user->next = NULL;
   new_user->pseudo = malloc(sizeof(char) * MSG_MAXLEN);
   new_user->channel_id = 0;
+  new_user->receiving_file_from = 0;
 
   // pseudo filling
   strcpy(new_user->pseudo, pseudo);

@@ -23,7 +23,8 @@ enum SERVER_STATUS {
 enum CLIENT_STATUS {
     CLIENT_NOT_LOGGED,
     CLIENT_RUNNING,
-    CLIENT_QUITTING
+    CLIENT_QUITTING,
+    CLIENT_WAITING_ANSWER
 };
 
 enum FUNCTIONS {
@@ -37,7 +38,8 @@ enum FUNCTIONS {
     FUNC_CHANNEL_CREATE,
     FUNC_CHANNEL_JOIN,
     FUNC_CHANNEL_LIST,
-    FUNC_CHANNEL_QUIT
+    FUNC_CHANNEL_QUIT,
+    FUNC_SEND
 };
 
 typedef struct message {
@@ -55,6 +57,7 @@ struct users{
     unsigned short port;
     char * connection_date;
     int channel_id;
+    int receiving_file_from;
     struct users* next;
 };
 

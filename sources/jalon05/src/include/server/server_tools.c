@@ -139,14 +139,34 @@ void *connection_handler(void* thread_input)
           fflush(stdout);
           break;
 
-        case FUNC_CHANNEL_LIST:
-          printf("coucou\n");
+        case FUNC_CHANNEL_LIST:;
           channels_get_name_display(thread_args->channel_list, message->text);
           if(0 != pthread_mutex_lock(&current_user->communication_mutex)) { error("pthread_mutex_lock"); }
           send_message(thread_args->connection_fd, "Server", message->text, "");
           if(0 != pthread_mutex_unlock(&current_user->communication_mutex)) { error("pthread_mutex_unlock"); }
           printf(">[%s] : %s", message->source_pseudo, message->text);
           fflush(stdout);
+          break;
+
+        case FUNC_SEND:;
+          char * file_dest;
+          char * file_path;
+          char * file_source_user;
+          file_source_user = strdup(message->source_pseudo);
+          extract_command_args(message->text+strlen("/send "), &file_dest, &file_path);
+          if (0 != pthread_mutex_lock(&current_user->communication_mutex)) { error("pthread_mutex_lock"); }
+          send_message(users_get_user(thread_args->users_list, users_get_id_by_pseudo(thread_args->users_list, file_dest))->associated_fd, "Server", message, "");
+          printf(">[%s] : %s", message->source_pseudo, message->text);
+          users_get_user(thread_args->users_list,
+                  users_get_id_by_pseudo(thread_args->users_list, file_dest))->receiving_file_from = current_user->id;
+          flush_message(message);
+          message = receive_message(thread_args->connection_fd);
+          send_message(thread_args->connection_fd, "Message contenant les futures infos pour la transmission", current_user->pseudo, "");
+          if (0 != pthread_mutex_unlock(&current_user->communication_mutex)) { error("pthread_mutex_unlock"); }
+          fflush(stdout);
+          free(file_dest);
+          free(file_path);
+          free(file_source_user);
           break;
 
         default:;

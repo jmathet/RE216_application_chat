@@ -15,8 +15,6 @@
 #include "../general_tools.h"
 #include "server_tools_channels.h"
 
-
-
 typedef struct thread_arg {
   int connection_fd;
   int user_id;
