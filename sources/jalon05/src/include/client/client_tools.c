@@ -55,30 +55,15 @@ void init_client_addr(struct sockaddr_in *serv_addr, char *ip, int port) {
 // TODO differencier mutex en lecture des mutex en écriture
 void * reception_handler(void * arg) {
   /* INITS */
+  int need_answer = 0;
   reception_arg * input = (reception_arg *) arg;
   struct message * received_message = init_message();
 
   /* RECEPTION AND DISPLAY OF MESSAGES */
-  while(input->status != CLIENT_QUITTING) {
+  while(*input->status != CLIENT_QUITTING) {
     flush_message(received_message);
     pthread_mutex_lock(&input->sock_mutex);
     received_message = receive_message(input->sock);
-
-    if(strncmp(received_message->text, "/send ", strlen("/send ")) == 0)
-      input->status == CLIENT_WAITING_ANSWER;
-
-    while(input->status == CLIENT_WAITING_ANSWER) {
-      printf("<[%s] wants to send you the file XXX. Do you accept ? Reply with Y/N.\n", received_message->source_pseudo);
-      fflush(stdout);
-      memset(received_message->text, 0, MSG_MAXLEN);
-      fgets(received_message->text, MSG_MAXLEN-1, stdin);
-      if(strncmp("Y", received_message->text, 1)==0 || strncmp("N", received_message->text, 1)==0) {
-        send_message(input->sock, received_message->text, "", "");
-        input->status = CLIENT_RUNNING;
-      }
-      flush_message(received_message);
-      received_message = receive_message(input->sock);
-    }
 
     if(received_message->source[0] == '\0') // if no source is specified
       printf("<[%s] : %s", received_message->source_pseudo, received_message->text);
@@ -87,9 +72,12 @@ void * reception_handler(void * arg) {
     fflush(stdout);
     pthread_mutex_unlock(&input->sock_mutex);
 
+    if(strncmp(received_message->text, "/send ", strlen("/send ")) == 0)
+      *input->status = CLIENT_WAITING_ANSWER;
+
     // check if /quit
     if(strncmp("/quit", received_message->text, 5) == 0)
-      input->status = CLIENT_QUITTING;
+      *input->status = CLIENT_QUITTING;
   }
 
   free(received_message);
@@ -102,7 +90,30 @@ void * communication_handler(void * arg) {
   struct message * message = init_message();
 
   /* EMISSION OF MESSAGES */
-  while(input->status != CLIENT_QUITTING) {
+  while(*input->status != CLIENT_QUITTING) {
+    while(*input->status == CLIENT_WAITING_ANSWER) {
+      printf("<[%s] wants to send you the file XXX. Do you accept ? Reply with Y/N.\n", message->source_pseudo);
+      fflush(stdout);
+      memset(message->text, 0, MSG_MAXLEN);
+      fgets(message->text, MSG_MAXLEN-1, stdin);
+      printf("Réponse reçue : %s", message->text);
+      fflush(stdout);
+      if(strncmp("Y", message->text, 1)==0 || strncmp("N", message->text, 1)==0) {
+        printf("Réponse enregistrée : %s", message->text);
+        fflush(stdout);
+        send_message(input->sock,input->pseudo, message->text, "");
+        *input->status = CLIENT_RUNNING;
+        printf("ENVOIE : %s", message->text);
+        pthread_t file_reception_thread;
+        file_reception_arg * file_reception_arg;
+        file_reception_arg = malloc(sizeof(file_reception_arg));
+        file_reception_arg->sock = input->sock;
+        //file_reception_arg->status = ???;
+        if(0 != pthread_create(&file_reception_arg, NULL, file_reception_handler, file_reception_arg))
+          error("pthread_create");
+
+      }
+    }
     memset(message->text, 0, MSG_MAXLEN);
     fgets(message->text, MSG_MAXLEN-1, stdin);
     printf(">(me) : %s", message->text);
@@ -114,7 +125,7 @@ void * communication_handler(void * arg) {
     if(message->text[0] == '/') { // if a command is sent
       switch (parser(message->text)) {
         case FUNC_QUIT:;
-          input->status = CLIENT_QUITTING;
+          *input->status = CLIENT_QUITTING;
           break;
         case FUNC_NICK:;
           struct message *received_message = receive_message(input->sock);
@@ -164,7 +175,7 @@ void * file_reception_handler(void * arg){
   /* SOCKET SET-UP declarations */
   int sock_fd;
   int port = 0;
-  struct sockaddr_in *serv_addr;
+  struct sockaddr_in *serv_addr = malloc(sizeof(struct sockaddr_in));
   struct sockaddr_in client_addr;
 
   /* SOCKET SET-UP building */

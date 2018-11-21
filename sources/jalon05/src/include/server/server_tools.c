@@ -149,24 +149,31 @@ void *connection_handler(void* thread_input)
           break;
 
         case FUNC_SEND:;
-          char * file_dest;
+          char * file_user;
           char * file_path;
-          char * file_source_user;
-          file_source_user = strdup(message->source_pseudo);
-          extract_command_args(message->text+strlen("/send "), &file_dest, &file_path);
-          if (0 != pthread_mutex_lock(&current_user->communication_mutex)) { error("pthread_mutex_lock"); }
-          send_message(users_get_user(thread_args->users_list, users_get_id_by_pseudo(thread_args->users_list, file_dest))->associated_fd, "Server", message, "");
-          printf(">[%s] : %s", message->source_pseudo, message->text);
-          users_get_user(thread_args->users_list,
-                  users_get_id_by_pseudo(thread_args->users_list, file_dest))->receiving_file_from = current_user->id;
-          flush_message(message);
-          message = receive_message(thread_args->connection_fd);
-          send_message(thread_args->connection_fd, "Message contenant les futures infos pour la transmission", current_user->pseudo, "");
-          if (0 != pthread_mutex_unlock(&current_user->communication_mutex)) { error("pthread_mutex_unlock"); }
+          remove_line_breaks(message->text);
+          extract_command_args(message->text+strlen("/send "), &file_user, &file_path);
+          dest_id = users_get_id_by_pseudo(thread_args->users_list, file_user);
+          if (0 != dest_id) {
+            send_message_to_user(thread_args->users_list, dest_id, message->text, message->source_pseudo, "", 4);
+            printf(">[%s] : %s\n", file_user, message->text);
+            users_get_user(thread_args->users_list,
+                           users_get_id_by_pseudo(thread_args->users_list, file_user))->receiving_file_from = current_user->id;
+            flush_message(message);
+            message = receive_message(thread_args->connection_fd);
+            send_message(thread_args->connection_fd, "Message contenant les futures infos pour la transmission", current_user->pseudo, "");
+
+          }
+          else {
+            if (0 != pthread_mutex_lock(&current_user->communication_mutex)) { error("pthread_mutex_lock"); }
+            send_message(thread_args->connection_fd, "Server", "Error, unknown user.\n", "");
+            if (0 != pthread_mutex_unlock(&current_user->communication_mutex)) { error("pthread_mutex_unlock"); }
+            printf("![Server] : %s tried to reach %s but the user does not exist.\n", message->source_pseudo, file_user);
+          }
           fflush(stdout);
-          free(file_dest);
-          free(file_path);
-          free(file_source_user);
+          free(file_user);
+          free(command_text);
+
           break;
 
         default:;
@@ -223,7 +230,7 @@ void extract_command_args(char *message_pointer, char **pt_command_arg, char **p
 }
 
 void send_message_to_user(struct users *users, int dest_id, char *text, char *source_pseudo, char *source, short mode) {
-  /* Mode : 0=ignore, 1=PM, 2=broadcast, 3=channel */
+  /* Mode : 0=ignore, 1=PM, 2=broadcast, 3=channel 4=file*/
   struct users * dest_user = users_get_user(users, dest_id);
   char * source_to_send = malloc(MSG_MAXLEN);
   switch (mode) {
@@ -235,6 +242,9 @@ void send_message_to_user(struct users *users, int dest_id, char *text, char *so
       break;
     case 3: // channel
       sprintf(source_to_send, "channel '%s'", source);
+      break;
+    case 4:
+      sprintf(source_to_send, "file");
       break;
   }
   if(0 != pthread_mutex_lock(&dest_user->communication_mutex)) { error("pthread_mutex_lock"); }

@@ -4,7 +4,7 @@
 int main(int argc,char** argv)
 {
     /* INITS */
-    volatile int status;
+    int status;
     int host_port;
     int sock;
     struct sockaddr_in host_addr;
@@ -12,18 +12,17 @@ int main(int argc,char** argv)
     char * pseudo;
     pthread_t reception_thread;
     pthread_t communication_thread;
-    pthread_t file_reception_thread;
     pthread_t file_emission_thread;
     reception_arg * reception_input;
     communication_arg * communication_input;
-    file_reception_arg * file_reception_arg;
     file_communication_arg * file_communication_arg;
     pthread_mutex_t sock_mutex = PTHREAD_MUTEX_INITIALIZER;
 
     /* MALLOC */
     reception_input = malloc(sizeof(reception_arg));
+    reception_input->status = malloc(sizeof(int));
     communication_input = malloc(sizeof(communication_arg));
-    file_reception_arg = malloc(sizeof(file_reception_arg));
+    communication_input->status = malloc(sizeof(int));
     file_communication_arg = malloc(sizeof(file_communication_arg));
     pseudo = malloc(MSG_MAXLEN);
 
@@ -59,14 +58,14 @@ int main(int argc,char** argv)
 
       /* RECEPTION THREAD */
       reception_input->sock = sock;
-      reception_input->status = status;
+      reception_input->status = &status;
       reception_input->sock_mutex = sock_mutex;
       if(0 != pthread_create(&reception_thread, NULL, reception_handler, reception_input))
         error("pthread_create");
 
       /* COMMUNICATION THREAD */
       communication_input->sock = sock;
-      communication_input->status = status;
+      communication_input->status = &status;
       communication_input->sock_mutex = sock_mutex;
       communication_input->pseudo = pseudo;
       if(0 != pthread_create(&communication_thread, NULL, communication_handler, communication_input))

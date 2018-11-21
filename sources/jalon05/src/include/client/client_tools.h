@@ -16,13 +16,13 @@
 
 typedef struct reception_arg {
     int sock;
-    int status;
+    int *status;
     pthread_mutex_t sock_mutex;
 } reception_arg;
 
 typedef struct communication_arg {
     int sock;
-    int status;
+    int *status;
     pthread_mutex_t sock_mutex;
     char * pseudo;
 } communication_arg;
