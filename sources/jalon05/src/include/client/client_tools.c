@@ -18,6 +18,7 @@ void init_client_addr(struct sockaddr_in *serv_addr, char *ip, int port) {
    if (connect_result == -1)
      error("connect");
  }
+
 //TODO check nécessité mutexs dans cette fonction
  void auth_user(int sock, char *pseudo) {
   char message[MSG_MAXLEN];
@@ -55,7 +56,11 @@ void init_client_addr(struct sockaddr_in *serv_addr, char *ip, int port) {
 // TODO differencier mutex en lecture des mutex en écriture
 void * reception_handler(void * arg) {
   /* INITS */
-  int need_answer = 0;
+  int fd_file;
+  char * user_pseudo;
+  char * path;
+  user_pseudo = malloc(MSG_MAXLEN);
+  path = malloc(MSG_MAXLEN);
   reception_arg * input = (reception_arg *) arg;
   struct message * received_message = init_message();
 
@@ -72,8 +77,16 @@ void * reception_handler(void * arg) {
     fflush(stdout);
     pthread_mutex_unlock(&input->sock_mutex);
 
-    if(strncmp(received_message->text, "/send ", strlen("/send ")) == 0)
+    if(strncmp(received_message->text, "/send ", strlen("/send ")) == 0){
+
       *input->status = CLIENT_WAITING_ANSWER;
+      sscanf(received_message->text + strlen("/send "),"%s %s", user_pseudo, path);
+      /*fd_file = fopen(path, "r");
+      if (fd_file==-1){
+        printf("File not find ! (Use an absolute path).\n");
+        *input->status = CLIENT_RUNNING;
+      }*/
+    }
 
     if(strncmp(received_message->text, "/accept ", strlen("/accept ")) == 0) {
       char * port = malloc(MSG_MAXLEN);
@@ -87,6 +100,9 @@ void * reception_handler(void * arg) {
       file_communication_arg->sock = input->sock;
       strcpy(file_communication_arg->IP, IP_to_connect);
       file_communication_arg->port = atoi(port);
+      file_communication_arg->fd_file  = fd_file;
+      file_communication_arg->path = path;
+      printf("PORTTTT : %d", file_communication_arg->port);
       if (0 != pthread_create(file_communication_arg, NULL, file_communication_handler, file_communication_arg))
         error("pthread_create");
     }
@@ -124,9 +140,12 @@ void * communication_handler(void * arg) {
         file_reception_arg * file_reception_arg;
         file_reception_arg = malloc(sizeof(file_reception_arg));
         file_reception_arg->sock = input->sock;
+        file_reception_arg->status = input->sock;
         file_reception_arg->pseudo = input->pseudo;
+        printf("socket srv = %d", file_reception_arg->sock);
+
         //file_reception_arg->status = ???;
-        if(0 != pthread_create(&file_reception_arg, NULL, file_reception_handler, file_reception_arg))
+        if(0 != pthread_create(file_reception_arg, NULL, file_reception_handler, file_reception_arg))
           error("pthread_create");
 
       }
@@ -172,14 +191,22 @@ void * file_communication_handler(void * arg){
   struct sockaddr_in serv_addr;
   int sock_initialisation;
 
-  printf("tentative de connexion pour envoie : %d // %s", input->port, input->IP);
+  printf("tentative de connexion pour envoie : %s // %s", input->port, input->IP);
   /* SOCKET SET-UP building */
   sock_initialisation = do_socket();
-  init_client_addr(&serv_addr, input->IP, input->port);
+  init_client_addr(&serv_addr, input->IP, atoi(input->port));
   do_connect(sock_initialisation, serv_addr);
   printf("Connexion pour transfert de fichier OK");
   fflush(stdout);
 
+  /* SENDING FILE */
+  /*struct stat fichier;
+  stat(input->path, &fichier);
+  printf("Taille du fichier : %i", fichier.st_size);
+  send_file(input->fd_file, sock_initialisation, fichier.st_size);
+
+  close(sock_initialisation);
+  close(input->fd_file);*/
   return NULL;
 }
 
@@ -190,6 +217,8 @@ void * file_reception_handler(void * arg){
   /* SOCKET SET-UP declarations */
   int sock_fd;
   int port = 0;
+  int sock_server = input->sock;
+  printf("sock server = %d", sock_server);
   struct sockaddr_in *serv_addr = malloc(sizeof(struct sockaddr_in));
   struct sockaddr_in client_addr;
 
@@ -204,14 +233,27 @@ void * file_reception_handler(void * arg){
 
   char * infos_to_connect = malloc(MSG_MAXLEN);
   sprintf(infos_to_connect,"%s %s %d", "/accept",inet_ntoa(serv_addr->sin_addr), port);
-  send_message(input->sock, input->pseudo, infos_to_connect,"");
-
+  printf("COUCOU0");
+  fflush(stdout);
+  send_message(3, input->pseudo, infos_to_connect,"");
+  printf("COUCOU1");
+  fflush(stdout);
   do_listen(sock_fd, 1);
 
   socklen_t addrlen = sizeof(struct sockaddr);
   int fd_sock_init = do_accept(sock_fd, (struct sockaddr*)&client_addr, &addrlen);
   printf("connexion réussi %d\n", fd_sock_init);
 
+  /* RECEIVING FILE */
+  /*int fd_new_file = creat("/tmp", S_IRWXG);
+  struct stat fichier;
+  stat("/temp/", &fichier);
+  printf("Taille du fichier : %i", fichier.st_size);
+  receive_file(fd_new_file, sock_fd, fichier.st_size);
+
+  close(sock_fd);
+  close(fd_new_file);
+*/
 
   return NULL;
 }

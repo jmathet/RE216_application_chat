@@ -10,6 +10,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <pthread.h>
+#include <fcntl.h>
 #include "../general_tools.h"
 
 #define LENGTH_IP_ADDR 10
@@ -37,7 +38,8 @@ typedef struct file_communication_arg {
     int sock;
     char* port;
     char * IP;
-
+    int fd_file;
+    char * path;
 } file_communication_arg;
 
 /* Modify specified sockaddr_in for the client side with specified port and IP

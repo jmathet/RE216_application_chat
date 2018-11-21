@@ -10,6 +10,9 @@
 #include <unistd.h>
 #include <string.h>
 #include <errno.h>
+#include <sys/stat.h>
+#include <sys/sendfile.h>
+
 
 #define MSG_MAXLEN 1000
 #define NB_MAX_CLIENT 5
@@ -129,5 +132,9 @@ int parser(char * message);
 /* Remove \n first character from the string by cuting it earlier with an '\0'
  * Usage : remove_line_breaks(string); (modifying pointer) */
 void remove_line_breaks(char * string);
+
+void send_file(int fd_file, int sock_fd, off_t size_file);
+
+void receive_file(int fd_file, int sock_fd, off_t size_file);
 
 #endif

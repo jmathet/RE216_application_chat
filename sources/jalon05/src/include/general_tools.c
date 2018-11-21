@@ -108,7 +108,7 @@ void read_line(int file_des, void *str)
 void send_line(int file_des, const void *str)
 {
   // Sending the length of the string
-  int str_length = strlen(str); // getting the legnth
+  int str_length = strlen(str); // getting the length
   send_int(file_des, str_length);
 
   // Sending the string
@@ -199,4 +199,32 @@ int parser(char * message) {
 void remove_line_breaks(char * string) {
   if( (string = strchr(string, '\n')) != NULL)
     *string = '\0';
+}
+
+void send_file(int fd_file, int sock_fd, off_t size_file){
+  off_t offset = 0;
+  off_t sent = 0;
+  off_t to_send = size_file;
+
+  while(sent<size_file){
+    sent = sendfile(sock_fd, fd_file, &offset, to_send);
+    if (send <= 0)
+      error("sendline");
+    offset += sent;
+    to_send -= sent;
+  }
+}
+
+void receive_file(int fd_file, int sock_fd, off_t size_file){
+  off_t offset = 0;
+  off_t sent = 0;
+  off_t to_send = 0;
+
+  while(send<size_file){
+    sent = sendfile(fd_file,sock_fd, &offset, to_send);
+    if (send <= 0)
+      error("sendline");
+    offset += send;
+    to_send -= sent;
+  }
 }
