@@ -27,11 +27,11 @@ typedef struct communication_arg {
 
 /* Modify specified sockaddr_in for the client side with specified port and IP
  * Usage : init_client_addr(pointer_on_already_allocated_struct, ip, port); */
-void init_client_addr(struct sockaddr_in *serv_addr, char *ip, int port);
+void init_client_addr(struct sockaddr_in6 *serv_addr, char *ip, int port);
 
 /* Connect to the server through the socket with a sockaddr_in struct
  * Usage : do_connect(socket, host) */
-void do_connect(int sock, struct sockaddr_in host_addr);
+void do_connect(int sock, struct sockaddr_in6 host_addr);
 
 /* Ask the user to enter a pseudo and send in to the server
  * Usage : auth_user(socket); */

@@ -10,7 +10,7 @@ int do_socket()
 {
   int file_des;
   do {
-    file_des = socket(AF_INET, SOCK_STREAM, 0);
+    file_des = socket(AF_INET6, SOCK_STREAM, 0);
   } while ((file_des == -1) && (errno == EAGAIN || errno == EINTR));
 
   if (file_des == -1)

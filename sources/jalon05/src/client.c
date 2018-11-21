@@ -7,7 +7,7 @@ int main(int argc,char** argv)
     volatile int status;
     int host_port;
     int sock;
-    struct sockaddr_in host_addr;
+    struct sockaddr_in6 host_addr;
     char host_ip[10];
     char * pseudo;
     pthread_t reception_thread;

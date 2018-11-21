@@ -13,8 +13,8 @@ int main(int argc, char** argv)
     volatile int status;
     volatile int nb_connections = 0;
     int users_counter = 1; // start users index at 1
-    struct sockaddr_in serv_addr;
-    struct sockaddr_in client_addr;
+    struct sockaddr_in6 serv_addr;
+    struct sockaddr_in6 client_addr;
     pthread_t thread;
     thread_arg * thread_input; // args for thread creation
     struct users * system_user;
@@ -84,8 +84,8 @@ int main(int argc, char** argv)
           thread_input->pt_status = &status;
           thread_input->users_list = system_user;
           thread_input->channel_list = system_channel;
-          thread_input->client_IP = inet_ntoa(client_addr.sin_addr);
-          thread_input->client_port = ntohs(client_addr.sin_port);
+          inet_ntop(AF_INET6, &client_addr.sin6_addr, thread_input->client_IP, sizeof(client_addr.sin6_addr));
+          thread_input->client_port = ntohs(client_addr.sin6_port);
 
           // thread creation
           if(0 != pthread_create( &thread, NULL ,  connection_handler , (void*)thread_input))

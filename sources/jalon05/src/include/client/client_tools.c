@@ -1,14 +1,14 @@
 #include "client_tools.h"
 
-void init_client_addr(struct sockaddr_in *serv_addr, char *ip, int port) {
+void init_client_addr(struct sockaddr_in6 *serv_addr, char *ip, int port) {
    // clean structure
    memset(serv_addr, '\0', sizeof(*serv_addr));
-   serv_addr->sin_family = AF_INET; // IP V4
-   serv_addr->sin_port = htons(port); // specified port in args
-   serv_addr->sin_addr.s_addr = inet_addr(ip); // specified server IP in args
+   serv_addr->sin6_family = AF_INET6; // IP V6
+   serv_addr->sin6_port = htons(port); // specified port in args
+   inet_pton(AF_INET6, ip, &serv_addr->sin6_addr);
  }
 
- void do_connect(int sock, struct sockaddr_in host_addr) {
+ void do_connect(int sock, struct sockaddr_in6 host_addr) {
    int connect_result;
 
    do {

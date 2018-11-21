@@ -29,10 +29,10 @@ typedef struct thread_arg {
 } thread_arg;
 
 /* Modify specified sockaddr_in for the server side with specified port */
-void init_serv_addr(struct sockaddr_in *serv_addr, int port);
+void init_serv_addr(struct sockaddr_in6 *serv_addr, int port);
 
 /* Perform a bind on specified socket */
-void do_bind(int socket, struct sockaddr_in addr_in);
+void do_bind(int socket, struct sockaddr_in6 addr_in);
 
 /* Switch specified socket in the listen state */
 void do_listen(int socket, int nb_max);

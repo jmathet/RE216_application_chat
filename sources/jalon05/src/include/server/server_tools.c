@@ -1,15 +1,15 @@
 #include "server_tools.h"
 
-void init_serv_addr(struct sockaddr_in *serv_addr, int port)
+void init_serv_addr(struct sockaddr_in6 *serv_addr, int port)
  {
    // clean structure
    memset(serv_addr, 0, sizeof(*serv_addr));
-   serv_addr->sin_family = AF_INET; // IP V4
-   serv_addr->sin_port = htons(port); // specified port in args
-   serv_addr->sin_addr.s_addr = INADDR_ANY;
+   serv_addr->sin6_family = AF_INET6; // IP V6
+   serv_addr->sin6_port = htons(port); // specified port in args
+   serv_addr->sin6_addr = in6addr_any;
  }
 
- void do_bind(int socket, struct sockaddr_in addr_in)
+ void do_bind(int socket, struct sockaddr_in6 addr_in)
  {
    int bind_result = bind(socket, (struct sockaddr *) &addr_in, sizeof(addr_in));
    if (-1 == bind_result)
