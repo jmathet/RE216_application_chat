@@ -85,7 +85,7 @@ void * reception_handler(void * arg) {
       file_communication_arg = malloc(sizeof(file_communication_arg));
       file_communication_arg->IP = malloc(LENGTH_IP_ADDR);
       file_communication_arg->sock = input->sock;
-      strcpy(file_communication_arg->IP, "127.0.0.1");
+      strcpy(file_communication_arg->IP, IP_to_connect);
       file_communication_arg->port = atoi(port);
       if (0 != pthread_create(file_communication_arg, NULL, file_communication_handler, file_communication_arg))
         error("pthread_create");
