@@ -135,7 +135,7 @@ void *connection_handler(void* thread_input)
           fflush(stdout);
           break;
 
-        case FUNC_QUIT:; // TODO fix - problème au niveau de la terminaison des threads
+        case FUNC_QUIT:;
           -- *(thread_args->pt_nb_conn); // decrease number of nb_total_connections
           client_status = CLIENT_QUITTING;
           if (current_user->channel_id!=0)
@@ -171,7 +171,6 @@ void *connection_handler(void* thread_input)
           break;
 
         case FUNC_CHANNEL_LIST:
-          printf("coucou\n");
           channels_get_name_display(thread_args->channel_list, message->text);
           if(0 != pthread_mutex_lock(&current_user->communication_mutex)) { error("pthread_mutex_lock"); }
           send_message(thread_args->connection_fd, "Server", message->text, "");
@@ -181,7 +180,10 @@ void *connection_handler(void* thread_input)
           break;
 
         default:;
-          printf("![System] : Invalid command from user %i.\n", current_user->id); // TODO informer l'user
+          printf("![System] : Invalid command from user %i.\n", current_user->id);
+          if(0 != pthread_mutex_lock(&current_user->communication_mutex)) { error("pthread_mutex_lock"); }
+          send_message(thread_args->connection_fd, "Server", "Command invalid.", "");
+          if(0 != pthread_mutex_unlock(&current_user->communication_mutex)) { error("pthread_mutex_unlock"); }
           fflush(stdout);
           break;
         } // END switch
@@ -200,7 +202,7 @@ void *connection_handler(void* thread_input)
     } // END else
   } // END while
 
-  printf("![System] : Connection from user %i stopped.\n", thread_args->user_id);
+  printf("![System] : Connection from user %i closed.\n", thread_args->user_id);
   fflush(stdout);
 
   /* CLEAN UP */

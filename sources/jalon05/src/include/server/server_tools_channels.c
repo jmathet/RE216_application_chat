@@ -6,10 +6,8 @@ struct channel* channel_init(char *name, int id){
   new_channel->name = malloc(strlen(name));
   strcpy(new_channel->name, name);
   new_channel->id = id;
-
-  for (int i = 0; i < NB_MAX_CLIENT ; i++) { // TODO remplacer par un memset
+  for (int i = 0; i < NB_MAX_CLIENT ; i++)
     new_channel->members[i] = 0;
-  }
   new_channel->nb_users_inside = 0;
   new_channel->next = NULL;
 
@@ -122,14 +120,14 @@ void channel_delete_user(struct channel* channels_list,struct users* users_list,
       channel_temp->members[i]=0;
   }
   memset(message, 0, MSG_MAXLEN);
-  strcpy(message,"You leave the channel.\n");
+  strcpy(message,"You left the channel.\n");
   // Decrease the members counter
   channel_temp->nb_users_inside--;
   // Check if this user is the last one
   if (channel_temp->nb_users_inside==0){
     channels_delete_channel(channels_list, channel_temp->id);
     memset(message, 0, MSG_MAXLEN);
-    strcpy(message,"Channel has been destroyed.\n");
+    strcpy(message,"Channel destroyed.\n");
   }
 }
 

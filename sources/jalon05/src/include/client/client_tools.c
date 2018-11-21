@@ -18,7 +18,7 @@ void init_client_addr(struct sockaddr_in *serv_addr, char *ip, int port) {
    if (connect_result == -1)
      error("connect");
  }
-//TODO check nécessité mutexs dans cette fonction
+
  void auth_user(int sock, char *pseudo) {
   char message[MSG_MAXLEN];
   int finished = 0;
@@ -46,13 +46,12 @@ void init_client_addr(struct sockaddr_in *serv_addr, char *ip, int port) {
 }
 
  int is_pseudo_correct(char * pseudo) {
-  // TODO : check avec une regex sur la consistance du pseudo (pas urgent)
   if (strlen(pseudo) > 1 && *pseudo != ' ')
     return 1;
   else
     return 0;
 }
-// TODO differencier mutex en lecture des mutex en écriture
+
 void * reception_handler(void * arg) {
   /* INITS */
   reception_arg * input = (reception_arg *) arg;
@@ -91,7 +90,7 @@ void * communication_handler(void * arg) {
     printf(">(me) : %s", message->text);
     fflush(stdout);
     pthread_mutex_lock(&input->sock_mutex);
-    send_message(input->sock, input->pseudo, message->text, ""); // TODO peut etre a changer ?
+    send_message(input->sock, input->pseudo, message->text, "");
     pthread_mutex_unlock(&input->sock_mutex);
 
     if(message->text[0] == '/') { // if a command is sent
