@@ -161,7 +161,7 @@ void *connection_handler(void* thread_input)
                            users_get_id_by_pseudo(thread_args->users_list, file_user))->receiving_file_from = current_user->id;
             flush_message(message);
             message = receive_message(thread_args->connection_fd);
-            send_message(thread_args->connection_fd, "Message contenant les futures infos pour la transmission", current_user->pseudo, "");
+            send_message(thread_args->connection_fd, current_user->pseudo,"Message contenant les futures infos pour la transmission", "");
 
           }
           else {
@@ -174,6 +174,11 @@ void *connection_handler(void* thread_input)
           free(file_user);
           free(command_text);
 
+          break;
+        case FUNC_ACCEPT:;
+          printf("ACCEEEPPT %s", message->text);
+          fflush(stdout);
+          send_message_to_user(thread_args->users_list, current_user->receiving_file_from, message->text, current_user->pseudo, "",4);
           break;
 
         default:;

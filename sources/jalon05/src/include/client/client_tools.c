@@ -75,6 +75,22 @@ void * reception_handler(void * arg) {
     if(strncmp(received_message->text, "/send ", strlen("/send ")) == 0)
       *input->status = CLIENT_WAITING_ANSWER;
 
+    if(strncmp(received_message->text, "/accept ", strlen("/accept ")) == 0) {
+      char * port = malloc(MSG_MAXLEN);
+      char *IP_to_connect = malloc(LENGTH_IP_ADDR);
+      sscanf(received_message->text + strlen("/accept "), "%s %s", IP_to_connect, port);
+      printf("%s // %s\n", IP_to_connect, port);
+      //pthread_t file_communication_thread; //TODO check utilité
+      file_communication_arg *file_communication_arg;
+      file_communication_arg = malloc(sizeof(file_communication_arg));
+      file_communication_arg->IP = malloc(LENGTH_IP_ADDR);
+      file_communication_arg->sock = input->sock;
+      strcpy(file_communication_arg->IP, "127.0.0.1");
+      file_communication_arg->port = atoi(port);
+      if (0 != pthread_create(file_communication_arg, NULL, file_communication_handler, file_communication_arg))
+        error("pthread_create");
+    }
+
     // check if /quit
     if(strncmp("/quit", received_message->text, 5) == 0)
       *input->status = CLIENT_QUITTING;
@@ -104,10 +120,11 @@ void * communication_handler(void * arg) {
         send_message(input->sock,input->pseudo, message->text, "");
         *input->status = CLIENT_RUNNING;
         printf("ENVOIE : %s", message->text);
-        pthread_t file_reception_thread;
+        //pthread_t file_reception_thread; //TODO check utilité
         file_reception_arg * file_reception_arg;
         file_reception_arg = malloc(sizeof(file_reception_arg));
         file_reception_arg->sock = input->sock;
+        file_reception_arg->pseudo = input->pseudo;
         //file_reception_arg->status = ???;
         if(0 != pthread_create(&file_reception_arg, NULL, file_reception_handler, file_reception_arg))
           error("pthread_create");
@@ -138,6 +155,7 @@ void * communication_handler(void * arg) {
           printf("<[%s] : %s", received_message->source_pseudo, received_message->text);
           fflush(stdout);
           break;
+
       }
     }
   }
@@ -152,15 +170,12 @@ void * file_communication_handler(void * arg){
 
   /* SOCKET SET-UP declarations */
   struct sockaddr_in serv_addr;
-  char * host_reception_ip;
-  host_reception_ip = malloc(LENGTH_IP_ADDR);
-  strncpy(host_reception_ip, input->IP, 10);
-  int host_reception_port = input->port;
   int sock_initialisation;
 
+  printf("tentative de connexion pour envoie : %d // %s", input->port, input->IP);
   /* SOCKET SET-UP building */
   sock_initialisation = do_socket();
-  init_client_addr(&serv_addr, host_reception_ip, host_reception_port);
+  init_client_addr(&serv_addr, input->IP, input->port);
   do_connect(sock_initialisation, serv_addr);
   printf("Connexion pour transfert de fichier OK");
   fflush(stdout);
@@ -187,7 +202,9 @@ void * file_reception_handler(void * arg){
   getsockname(sock_fd, (struct sockaddr *) serv_addr, &len);
   port = ntohs(serv_addr->sin_port);
 
-  printf("%s//%d\n", inet_ntoa(serv_addr->sin_addr), port);
+  char * infos_to_connect = malloc(MSG_MAXLEN);
+  sprintf(infos_to_connect,"%s %s %d", "/accept",inet_ntoa(serv_addr->sin_addr), port);
+  send_message(input->sock, input->pseudo, infos_to_connect,"");
 
   do_listen(sock_fd, 1);
 

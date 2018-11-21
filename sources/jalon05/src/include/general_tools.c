@@ -190,6 +190,8 @@ int parser(char * message) {
     return FUNC_CHANNEL_QUIT;
   else if(0 == strncmp("/send ", message, strlen("/send ")))
     return FUNC_SEND;
+  else if(0 == strncmp("/accept ", message, strlen("/accept ")))
+    return FUNC_ACCEPT;
   else
     return FUNC_UNDEFINED;
 }
