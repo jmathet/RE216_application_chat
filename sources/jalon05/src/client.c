@@ -67,10 +67,11 @@ int main(int argc,char** argv)
         error("pthread_create");
 
       /* THREADS JOIN */
-      if(0 != pthread_join(reception_thread, NULL))
-        error("pthread_join");
       if(0 != pthread_join(communication_thread, NULL))
         error("pthread_join");
+      if(0 != pthread_cancel(reception_thread))
+        error("pthread_cancel");
+
       printf("![System] : Quiting.\n");
     }
 

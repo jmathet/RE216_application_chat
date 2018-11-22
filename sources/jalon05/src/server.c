@@ -73,6 +73,7 @@ int main(int argc, char** argv)
         else { // we accept the client
           // malloc the thread args (free will be made by the thread once copied)
           thread_input = (thread_arg*)malloc(sizeof *thread_input);
+          thread_input->client_IP = malloc(INET6_ADDRSTRLEN);
 
           // sending OK signal with the pseudo-protocol
           send_int(connection_fd, SERVER_RUNNING);

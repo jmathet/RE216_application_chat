@@ -5,7 +5,7 @@ void users_add_user(struct users * list, int user_id, int thread_fd, char* pseud
   // filling user structure
   new_user->id = user_id;
   new_user->associated_fd = thread_fd;
-  new_user->IP_addr = malloc(sizeof(char)*10);
+  new_user->IP_addr = malloc(sizeof(char)*INET6_ADDRSTRLEN);
   new_user->port = port;
   new_user->connection_date = date;
   new_user->next = NULL;
@@ -16,7 +16,7 @@ void users_add_user(struct users * list, int user_id, int thread_fd, char* pseud
   strcpy(new_user->pseudo, pseudo);
 
   // IP_addr filling
-  strcpy(new_user->IP_addr, IP_addr);
+  inet_ntop(AF_INET6,IP_addr,new_user->IP_addr,INET_ADDRSTRLEN);
 
   // mutex init
   pthread_mutex_init(&new_user->communication_mutex, NULL);

@@ -88,31 +88,21 @@ void * communication_handler(void * arg) {
     memset(message->text, 0, MSG_MAXLEN);
     fgets(message->text, MSG_MAXLEN-1, stdin);
     printf(">(me) : %s", message->text);
-    fflush(stdout);
-    pthread_mutex_lock(&input->sock_mutex);
-    send_message(input->sock, input->pseudo, message->text, "");
-    pthread_mutex_unlock(&input->sock_mutex);
 
-    if(message->text[0] == '/') { // if a command is sent
-      switch (parser(message->text)) {
-        case FUNC_QUIT:;
-          input->status = CLIENT_QUITTING;
-          break;
-        case FUNC_NICK:;
-          struct message *received_message = receive_message(input->sock);
-          if (strncmp(received_message->text, "OK ",strlen("OK "))==0){
-            received_message->text = received_message->text + strlen("OK ");
-            memset(input->pseudo, 0, MSG_MAXLEN);
-            remove_line_breaks(message->text);
-            strcpy(input->pseudo, message->text + strlen("/nick "));
-          }
-          printf("<[%s] : %s", received_message->source_pseudo, received_message->text);
-          fflush(stdout);
-          break;
-      }
+    if(parser(message->text) == FUNC_QUIT) {
+      send_message(input->sock, input->pseudo, message->text, "");
+      input->status = CLIENT_QUITTING;
+      break;
     }
+    else {
+      pthread_mutex_lock(&input->sock_mutex);
+      send_message(input->sock, input->pseudo, message->text, "");
+      pthread_mutex_unlock(&input->sock_mutex);
+    }
+    fflush(stdout);
   }
   /* CLEAN UP */
   free(message);
+  fflush(stdout);
   return NULL;
 }

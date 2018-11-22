@@ -138,8 +138,8 @@ message * receive_message(int file_des) {
 }
 
 int parser(char * message) {
-  if(0 == strncmp("/quit\n", message, strlen("/quit\n")))
-    return FUNC_QUIT;
+  if(0 == strncmp("/quit ", message, strlen("/quit ")))
+    return FUNC_CHANNEL_QUIT;
   else if(0 == strncmp("/nick ", message, strlen("/nick ")))
     return FUNC_NICK;
   else if(0 == strncmp("/whois ", message, strlen("/whois ")))
@@ -156,8 +156,8 @@ int parser(char * message) {
     return FUNC_CHANNEL_JOIN;
   else if(0 == strncmp("/channels ", message, strlen("/channels")))
     return FUNC_CHANNEL_LIST;
-  else if(0 == strncmp("/quit ", message, strlen("/quit ")))
-    return FUNC_CHANNEL_QUIT;
+  else if(0 == strncmp("/quit", message, strlen("/quit")))
+    return FUNC_QUIT;
   else
     return FUNC_UNDEFINED;
 }
